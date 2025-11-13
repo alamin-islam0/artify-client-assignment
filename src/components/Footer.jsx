@@ -19,16 +19,16 @@ export default function Footer() {
               {/* Social Icons */}
               <div className="flex gap-4 mt-5">
                 <Zoom cascade damping={0.15} triggerOnce>
-                  <a href="#" className="p-2 rounded-full bg-base-300 hover:bg-primary hover:text-white transition-all duration-300">
+                  <a href="#" className="p-2 rounded-full   hover:text-white transition-all duration-300">
                     <Facebook size={18} />
                   </a>
-                  <a href="#" className="p-2 rounded-full bg-base-300 hover:bg-primary hover:text-white transition-all duration-300">
+                  <a href="#" className="p-2 rounded-full  hover:text-white transition-all duration-300">
                     <Instagram size={18} />
                   </a>
-                  <a href="#" className="p-2 rounded-full bg-base-300 hover:bg-primary hover:text-white transition-all duration-300">
+                  <a href="#" className="p-2 rounded-full   hover:text-white transition-all duration-300">
                     <X size={18} />
                   </a>
-                  <a href="#" className="p-2 rounded-full bg-base-300 hover:bg-primary hover:text-white transition-all duration-300">
+                  <a href="#" className="p-2 rounded-full  hover:text-white transition-all duration-300">
                     <Youtube size={18} />
                   </a>
                 </Zoom>
