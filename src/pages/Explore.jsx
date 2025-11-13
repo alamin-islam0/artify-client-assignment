@@ -1,6 +1,5 @@
 // src/pages/Explore.jsx
 import { useEffect, useState } from "react";
-import { getExplore } from "../api/artworks";
 import { Link } from "react-router-dom";
 
 /* Avatar helper copied from FeaturedArtworks.jsx */
@@ -131,8 +130,43 @@ function ArtworkCard({ a, loading }) {
   );
 }
 
+async function getExplore({ search = "", category = "", page = 1, limit = 12 } = {}) {
+  try {
+    const url = new URL("http://localhost:3000/arts");
+    url.searchParams.set("page", page);
+    url.searchParams.set("limit", limit);
+    if (search) url.searchParams.set("search", search);
+    if (category) url.searchParams.set("category", category);
+
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "Accept": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      // you can throw to be handled by caller; here we return empty array for resilience
+      console.error("getExplore failed:", res.status, res.statusText);
+      return { data: [], total: 0, page: Number(page), limit: Number(limit) };
+    }
+
+    const json = await res.json();
+
+    // backend returns { total, page, limit, data }
+    // adapt if your backend returns plain array
+    if (Array.isArray(json)) {
+      return { data: json, total: json.length, page: Number(page), limit: Number(limit) };
+    }
+
+    return { data: json.data || json, total: json.total || 0, page: json.page || Number(page), limit: json.limit || Number(limit) };
+  } catch (err) {
+    console.error("getExplore error:", err);
+    return { data: [], total: 0, page: Number(page), limit: Number(limit) };
+  }
+}
+
 export default function Explore() {
-  // KEEP YOUR EXACT SEARCH LOGIC
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("");
   const [list, setList] = useState([]);
