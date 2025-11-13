@@ -8,7 +8,7 @@ const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export default function AddArtwork() {
   const navigate = useNavigate();
-  const { user } = useAuth(); // 🔥 Firebase Auth user
+  const { user } = useAuth(); // Firebase Auth user
 
   const [form, setForm] = useState({
     image: "",
@@ -19,6 +19,7 @@ export default function AddArtwork() {
     dimensions: "",
     price: "",
     visibility: "public",
+    featured: false, // <-- added featured flag
   });
 
   const [busy, setBusy] = useState(false);
@@ -40,9 +41,15 @@ export default function AddArtwork() {
 
     // Payload to server
     const payload = {
-      ...form,
+      image: form.image,
+      title: form.title,
+      category: form.category,
+      medium: form.medium,
+      description: form.description,
+      dimensions: form.dimensions,
+      price: form.price === "" ? "" : Number(form.price),
       visibility: form.visibility === "public" ? "Public" : "Private",
-
+      featured: !!form.featured, // <-- send featured boolean
       // Firebase Auth user
       userName: user.displayName || "Unknown",
       userEmail: user.email,
@@ -50,7 +57,7 @@ export default function AddArtwork() {
     };
 
     try {
-      const res = await fetch(`${API_BASE}/arts`, {
+      const res = await fetch(`${API_BASE.replace(/\/$/, "")}/arts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -77,11 +84,13 @@ export default function AddArtwork() {
         dimensions: "",
         price: "",
         visibility: "public",
+        featured: false,
       });
 
+      // Navigate to explore so user can see featured/new item
       navigate("/explore");
     } catch (err) {
-      Swal.fire({ icon: "error", title: "Error", text: err.message });
+      Swal.fire({ icon: "error", title: "Error", text: err.message || "Try again" });
     } finally {
       setBusy(false);
     }
@@ -89,7 +98,7 @@ export default function AddArtwork() {
 
   return (
     <section className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-extrabold mb-6">Add Artwork</h1>
+      <h1 className="text-3xl font-extrabold mb-6 text-center">Add Artwork</h1>
 
       <form onSubmit={onSubmit} className="grid gap-6 bg-base-100 p-6 rounded-xl">
 
@@ -175,17 +184,30 @@ export default function AddArtwork() {
           </div>
         </div>
 
-        {/* VISIBILITY */}
-        <div>
-          <label className="font-semibold">Visibility</label>
-          <select
-            className="select select-bordered w-full"
-            value={form.visibility}
-            onChange={(e) => setForm({ ...form, visibility: e.target.value })}
-          >
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-          </select>
+        {/* VISIBILITY + FEATURED */}
+        <div className="grid sm:grid-cols-2 gap-4 items-center">
+          <div>
+            <label className="font-semibold">Visibility</label>
+            <select
+              className="select select-bordered w-full"
+              value={form.visibility}
+              onChange={(e) => setForm({ ...form, visibility: e.target.value })}
+            >
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input
+              id="featured"
+              type="checkbox"
+              className="checkbox tex-white"
+              checked={form.featured}
+              onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+            />
+            <label htmlFor="featured" className="font-semibold">Feature this artwork</label>
+          </div>
         </div>
 
         <button disabled={busy} className="btn btn-primary w-full">

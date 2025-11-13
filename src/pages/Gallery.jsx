@@ -14,8 +14,7 @@ export default function Gallery() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
 
-  // --- Edit modal state ---
-  const [editing, setEditing] = useState(false); // whether modal open
+  const [editing, setEditing] = useState(false);
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({
     image: "",
@@ -29,11 +28,8 @@ export default function Gallery() {
   });
   const [editBusy, setEditBusy] = useState(false);
 
-  // Fetch user's artworks from server (tries /my-arts first; fallback to /arts queries)
   const fetchMyArts = async (email, signal) => {
     if (!email) return [];
-
-    // 1) try /my-arts?email=
     try {
       const url1 = `${API_BASE}/my-arts?email=${encodeURIComponent(email)}`;
       const r1 = await fetch(url1, { method: "GET", signal });
@@ -44,8 +40,6 @@ export default function Gallery() {
     } catch (e) {
       if (e.name !== "AbortError") console.warn("my-arts fetch failed", e);
     }
-
-    // 2) try /arts?artistEmail=
     try {
       const url2 = `${API_BASE}/arts?artistEmail=${encodeURIComponent(email)}&page=1&limit=100`;
       const r2 = await fetch(url2, { method: "GET", signal });
@@ -57,8 +51,6 @@ export default function Gallery() {
     } catch (e) {
       if (e.name !== "AbortError") console.warn("arts?artistEmail fetch failed", e);
     }
-
-    // 3) try /arts?userEmail=
     try {
       const url3 = `${API_BASE}/arts?userEmail=${encodeURIComponent(email)}&page=1&limit=100`;
       const r3 = await fetch(url3, { method: "GET", signal });
@@ -70,7 +62,6 @@ export default function Gallery() {
     } catch (e) {
       if (e.name !== "AbortError") console.warn("arts?userEmail fetch failed", e);
     }
-
     return [];
   };
 
@@ -102,7 +93,6 @@ export default function Gallery() {
       load(controller.signal);
     }
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.email, authLoading]);
 
   const handleDelete = async (id) => {
@@ -141,7 +131,6 @@ export default function Gallery() {
     }
   };
 
-  // --- EDIT modal helpers ---
   const openEdit = (art) => {
     setEditId(art._id);
     setEditForm({
@@ -172,11 +161,21 @@ export default function Gallery() {
     });
   };
 
+  useEffect(() => {
+    if (editing) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [editing]);
+
   const submitEdit = async (e) => {
     e.preventDefault();
     if (!editId) return;
 
-    // basic validation
     if (!editForm.title || !editForm.image) {
       return Swal.fire({ icon: "error", title: "Missing", text: "Title and Image are required." });
     }
@@ -189,13 +188,11 @@ export default function Gallery() {
       medium: editForm.medium,
       description: editForm.description,
       dimensions: editForm.dimensions,
-      // keep empty string or number handling
       price: editForm.price === "" ? "" : Number(editForm.price),
       visibility: String(editForm.visibility).toLowerCase() === "private" ? "Private" : "Public",
       updatedAt: new Date(),
     };
 
-    // optimistic UI update: replace item in list
     const previous = list;
     setList((s) => s.map((a) => (a._id === editId ? { ...a, ...patch } : a)));
 
@@ -216,7 +213,6 @@ export default function Gallery() {
       closeEdit();
     } catch (err) {
       console.error("Update failed", err);
-      // rollback
       setList(previous);
       Swal.fire({ icon: "error", title: "Failed to update", text: err?.message || "Try again." });
     } finally {
@@ -246,13 +242,11 @@ export default function Gallery() {
 
   return (
     <section className="max-w-6xl mx-auto px-4 py-8">
-      {/* Header */}
       <header className="mb-6">
         <h1 className="text-3xl font-extrabold inter-font">My Gallery</h1>
         <p className="mt-1 text-sm opacity-70 montserrat-font">Manage artworks uploaded by <span className="font-semibold">{user.email}</span></p>
       </header>
 
-      {/* Table wrapper */}
       <div className="rounded-2xl border border-base-300 bg-base-100 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-base-300">
           <p className="text-sm montserrat-font">Total items: <span className="font-semibold">{list.length}</span></p>
@@ -271,7 +265,6 @@ export default function Gallery() {
             </thead>
 
             <tbody>
-              {/* Loading skeleton rows */}
               {loading &&
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={`sk-${i}`}>
@@ -291,7 +284,6 @@ export default function Gallery() {
                   </tr>
                 ))}
 
-              {/* Data rows */}
               {!loading &&
                 list.map((a, idx) => (
                   <tr key={a._id} className="hover">
@@ -308,17 +300,9 @@ export default function Gallery() {
                     <td><span className="badge badge-primary font-semibold">{a.category || "—"}</span></td>
                     <td className="text-right montserrat-font">{a.price ? `$${Number(a.price).toLocaleString()}` : "—"}</td>
                     <td className="text-right flex justify-end gap-2">
-                      <button
-                        onClick={() => openEdit(a)}
-                        className="btn btn-sm btn-outline"
-                      >
-                        Edit
-                      </button>
+                      <button onClick={() => openEdit(a)} className="btn btn-sm btn-outline">Edit</button>
 
-                      <button
-                        onClick={() => handleDelete(a._id)}
-                        className={`btn btn-outline btn-sm montserrat-font ${busyId === a._id ? "pointer-events-none opacity-60" : ""}`}
-                      >
+                      <button onClick={() => handleDelete(a._id)} className={`btn btn-outline btn-sm montserrat-font ${busyId === a._id ? "pointer-events-none opacity-60" : ""}`}>
                         {busyId === a._id ? (<><span className="loading loading-spinner loading-xs" /> Deleting…</>) : "Delete"}
                       </button>
                     </td>
@@ -328,7 +312,6 @@ export default function Gallery() {
           </table>
         </div>
 
-        {/* Empty state */}
         {!loading && list.length === 0 && (
           <div className="p-10 text-center">
             <h3 className="text-lg font-semibold inter-font">No artworks yet</h3>
@@ -337,10 +320,9 @@ export default function Gallery() {
         )}
       </div>
 
-      {/* ---------------- Edit Modal ---------------- */}
       {editing && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
-          <div className="w-full max-w-2xl bg-base-100 rounded-2xl p-6 shadow-lg">
+          <div className="w-full max-w-2xl bg-base-100 rounded-2xl p-6 shadow-lg max-h-[80vh] overflow-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold">Edit Artwork</h3>
               <button className="btn btn-ghost" onClick={closeEdit}>Close</button>
@@ -349,20 +331,12 @@ export default function Gallery() {
             <form onSubmit={submitEdit} className="grid gap-4">
               <div>
                 <label className="font-semibold text-sm">Image URL</label>
-                <input
-                  className="input input-bordered w-full"
-                  value={editForm.image}
-                  onChange={(e) => setEditForm((s) => ({ ...s, image: e.target.value }))}
-                />
+                <input className="input input-bordered w-full" value={editForm.image} onChange={(e) => setEditForm((s) => ({ ...s, image: e.target.value }))} />
               </div>
 
               <div>
                 <label className="font-semibold text-sm">Title</label>
-                <input
-                  className="input input-bordered w-full"
-                  value={editForm.title}
-                  onChange={(e) => setEditForm((s) => ({ ...s, title: e.target.value }))}
-                />
+                <input className="input input-bordered w-full" value={editForm.title} onChange={(e) => setEditForm((s) => ({ ...s, title: e.target.value }))} />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -408,9 +382,7 @@ export default function Gallery() {
 
               <div className="flex items-center justify-end gap-3 mt-2">
                 <button type="button" onClick={closeEdit} className="btn btn-ghost">Cancel</button>
-                <button disabled={editBusy} type="submit" className="btn btn-primary">
-                  {editBusy ? "Saving…" : "Save changes"}
-                </button>
+                <button disabled={editBusy} type="submit" className="btn btn-primary">{editBusy ? "Saving…" : "Save changes"}</button>
               </div>
             </form>
           </div>
