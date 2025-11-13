@@ -132,7 +132,7 @@ function ArtworkCard({ a, loading }) {
 
 async function getExplore({ search = "", category = "", page = 1, limit = 12 } = {}) {
   try {
-    const url = new URL("http://localhost:3000/arts");
+    const url = new URL("https://artify-server-assignment.onrender.com/arts");
     url.searchParams.set("page", page);
     url.searchParams.set("limit", limit);
     if (search) url.searchParams.set("search", search);
