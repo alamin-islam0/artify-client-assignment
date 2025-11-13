@@ -3,6 +3,8 @@ import { useEffect, useState, useCallback } from "react";
 import Slider from "../components/Slider";
 import AboutSection from "../components/About";
 import FeaturedArtworks from "../components/FeaturedArtworks";
+import TopArtists from "../components/TopArtists";
+import CommunityHighlights from "../components/CommunityHighlights";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -57,6 +59,8 @@ export default function Home() {
       <Slider />
       <AboutSection />
       <FeaturedArtworks items={items} loading={busy} />
+      <TopArtists/>
+      <CommunityHighlights/>
     </div>
   );
 }
