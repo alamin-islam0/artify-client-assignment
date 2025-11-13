@@ -1,0 +1,70 @@
+/* Load fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Montserrat:wght@100..900&display=swap");
+
+/* Tailwind layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Global typography (no need to add classes everywhere) ===== */
+@layer base {
+  /* Body / paragraphs */
+  html,
+  body {
+    font-family: "Montserrat", sans-serif;
+  }
+
+  /* All headings -> Inter automatically */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Inter", sans-serif;
+  }
+
+  /* Buttons also Montserrat by default */
+  button,
+  .btn {
+    font-family: "Montserrat", sans-serif;
+  }
+}
+
+/* ===== Optional: utility helpers if you still want explicit classes ===== */
+.inter-font {
+  font-family: "Inter", sans-serif;
+}
+.montserrat-font {
+  font-family: "Montserrat", sans-serif;
+}
+
+/* Example form/button helpers */
+.input {
+  @apply border rounded-md px-3 py-2 w-full;
+}
+.select {
+  @apply border rounded-md px-3 py-2 w-full;
+}
+.textarea {
+  @apply border rounded-md px-3 py-2 w-full;
+}
+
+/* Shared button base */
+.btn {
+  @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium montserrat-font;
+}
+
+/* Primary button (uses DaisyUI theme color automatically) */
+.btn-primary {
+  @apply bg-primary text-white border border-primary hover:bg-primary/90;
+}
+
+/* Outline button that adapts to theme */
+.btn-outline {
+  @apply border border-gray-400 bg-white
+         text-black
+         hover:border-[#2663eb]
+         hover:shadow-sm
+         hover:border-2
+}
