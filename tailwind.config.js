@@ -17,23 +17,24 @@ export default {
   },
   plugins: [require("daisyui")],
   daisyui: {
+    logs: false,
     themes: [
-         "light",
+      "light",
       {
         artify: {
-          "primary": "#2663eb",
-          "secondary": "#14b8a6",
-          "accent": "#2663eb",
-          "neutral": "#111827",
+          primary: "#2663eb",
+          secondary: "#14b8a6",
+          accent: "#2663eb",
+          neutral: "#111827",
 
-          /* Your requirement */
-          "base-100": "#000000",   // main surface (black)
-          "base-200": "#000000",   // lighter surface (white)
-          "base-content": "#000000", // default text on base-100 (white text on black)
+          /* Choose base-100 as white for default (light) surfaces.
+             We'll use DaisyUI/dark to switch to dark surfaces when needed. */
+          "base-100": "#ffffff",
+          "base-200": "#f3f4f6",
+          "base-content": "#111827"
         },
       },
-      "light",
-      "dark",
+      "dark"
     ],
   },
 };

@@ -6,65 +6,57 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== Global typography (no need to add classes everywhere) ===== */
+/* Global typography & small helpers */
 @layer base {
-  /* Body / paragraphs */
   html,
   body {
     font-family: "Montserrat", sans-serif;
   }
 
-  /* All headings -> Inter automatically */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1,h2,h3,h4,h5,h6 {
     font-family: "Inter", sans-serif;
   }
 
-  /* Buttons also Montserrat by default */
-  button,
-  .btn {
+  button, .btn {
     font-family: "Montserrat", sans-serif;
   }
+
+  /* Make DaisyUI use `artify` by default in dev if you want:
+     (optional) you can add `data-theme="artify"` to <html> to force that theme. */
 }
 
-/* ===== Optional: utility helpers if you still want explicit classes ===== */
-.inter-font {
-  font-family: "Inter", sans-serif;
-}
-.montserrat-font {
-  font-family: "Montserrat", sans-serif;
-}
+/* small utility classes */
+.inter-font { font-family: "Inter", sans-serif; }
+.montserrat-font { font-family: "Montserrat", sans-serif; }
 
-/* Example form/button helpers */
-.input {
-  @apply border rounded-md px-3 py-2 w-full;
-}
-.select {
-  @apply border rounded-md px-3 py-2 w-full;
-}
-.textarea {
-  @apply border rounded-md px-3 py-2 w-full;
-}
+/* Simple form/button niceties that play well with DaisyUI */
+.input { @apply border rounded-md px-3 py-2 w-full; }
+.select { @apply border rounded-md px-3 py-2 w-full; }
+.textarea { @apply border rounded-md px-3 py-2 w-full; }
 
-/* Shared button base */
 .btn {
   @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium montserrat-font;
 }
 
-/* Primary button (uses DaisyUI theme color automatically) */
+/* Primary and outline buttons */
 .btn-primary {
   @apply bg-primary text-white border border-primary hover:bg-primary/90;
 }
 
-/* Outline button that adapts to theme */
 .btn-outline {
-  @apply border border-gray-400 bg-white
-         text-black
-         hover:border-[#2663eb]
-         hover:shadow-sm
-         hover:border-2
+  @apply border border-gray-300 bg-white text-black hover:border-primary hover:shadow-sm;
+}
+
+/* Optional: dark-mode tweaks (Tailwind's 'dark' class toggles these) */
+:root { --app-bg: #ffffff; --app-text: #111827; }
+.dark :root, .dark body {
+  --app-bg: #0b1220;
+  --app-text: #e6eef8;
+}
+
+/* Use variables for body so switch + theme changes feel smooth */
+body {
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  transition: background-color 220ms ease, color 220ms ease;
 }

@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
+import Switch from "./ThemeSwitcher";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -29,7 +30,7 @@ const Navbar = () => {
     </>
   );
   return (
-    <div className="navbar max-w-6xl mx-auto  bg-base-100 shadow-sm z-10">
+    <div className="navbar max-w-6xl mx-auto  shadow-sm z-10">
       <div className="navbar-start">
         <div className="dropdown">
           <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
@@ -64,6 +65,9 @@ const Navbar = () => {
         <ul className="menu menu-horizontal px-1">{navLinks}</ul>
       </div>
       <div className="navbar-end">
+        <div className="pr-6">
+        < Switch/>
+        </div>
         {user ? (
           <div className="flex justify-center items-center gap-6">
             <img src={user.photoURL} className="w-8 h-8 rounded-full" />
