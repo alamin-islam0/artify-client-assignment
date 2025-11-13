@@ -65,6 +65,7 @@ const Navbar = () => {
         <ul className="menu menu-horizontal px-1">{navLinks}</ul>
       </div>
       <div className="navbar-end">
+            <div className="pr-6"><Switch/></div>
         {user ? (
           <>
             {/* Desktop / Tablet: show avatar + logout button */}
@@ -82,7 +83,7 @@ const Navbar = () => {
             </div>
 
             {/* Mobile: DaisyUI dropdown menu */}
-            <div className="dropdown dropdown-end sm:hidden">
+            <div className="dropdown dropdown-end lg:hidden">
               <div
                 tabIndex={0}
                 role="button"
