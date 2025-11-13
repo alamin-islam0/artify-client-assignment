@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
-import { getFeatured } from "../api/artworks";
 import Slider from "../components/Slider";
 import AboutSection from "../components/About";
-import FeaturedArtworks from "../components/FeaturedArtworks";
+
+export async function getFeatured() {
+  const res = await fetch("http://localhost:3000/arts/featured");
+  if (!res.ok) throw new Error("Failed to fetch featured artworks");
+  const data = await res.json();
+  console.log(data)
+  return { data };
+}
 
 export default function Home() {
   const [items, setItems] = useState([]);
@@ -10,6 +16,7 @@ export default function Home() {
 
   useEffect(() => {
     let alive = true;
+
     (async () => {
       try {
         const r = await getFeatured();
@@ -18,14 +25,16 @@ export default function Home() {
         if (alive) setBusy(false);
       }
     })();
-    return () => { alive = false; };
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
   return (
     <div>
-      <Slider />
-      <AboutSection />
-      <FeaturedArtworks items={items} loading={busy} />
+      <Slider/>
+      <AboutSection/>
     </div>
   );
 }
