@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
+// src/pages/Home.jsx
+import { useEffect, useState, useCallback } from "react";
 import Slider from "../components/Slider";
 import AboutSection from "../components/About";
 import FeaturedArtworks from "../components/FeaturedArtworks";
 
-export async function getFeatured() {
-  const res = await fetch("http://localhost:3000/arts/featured");
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export async function getFeatured(signal) {
+  const url = `${API_BASE.replace(/\/$/, "")}/arts/featured`;
+  const res = await fetch(url, { method: "GET", signal, cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch featured artworks");
   const data = await res.json();
   return { data };
@@ -14,28 +18,45 @@ export default function Home() {
   const [items, setItems] = useState([]);
   const [busy, setBusy] = useState(true);
 
-  useEffect(() => {
-    let alive = true;
-
-    (async () => {
+  const loadFeatured = useCallback(
+    async (signal) => {
+      setBusy(true);
       try {
-        const r = await getFeatured();
-        if (alive) setItems(r.data || []);
+        const r = await getFeatured(signal);
+        setItems(r.data || []);
+      } catch (err) {
+        // keep UX simple: log error and show empty state
+        console.error("getFeatured error:", err);
+        setItems([]);
       } finally {
-        if (alive) setBusy(false);
+        setBusy(false);
       }
-    })();
+    },
+    []
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadFeatured(controller.signal);
+
+    // re-fetch when window/tab regains focus (helps reflect newly added artworks)
+    const onFocus = () => {
+      // don't create a new controller here — use a quick fetch without cancellation
+      loadFeatured();
+    };
+    window.addEventListener("focus", onFocus);
 
     return () => {
-      alive = false;
+      controller.abort();
+      window.removeEventListener("focus", onFocus);
     };
-  }, []);
+  }, [loadFeatured]);
 
   return (
     <div>
-      <Slider/>
-      <AboutSection/>
-      <FeaturedArtworks items={items} loading = {busy}/>
+      <Slider />
+      <AboutSection />
+      <FeaturedArtworks items={items} loading={busy} />
     </div>
   );
 }
