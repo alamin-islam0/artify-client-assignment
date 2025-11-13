@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Heart, BookmarkPlus, Shield, Palette, Ruler } from "lucide-react";
 import Swal from "sweetalert2";
+import { useAuth } from "../providers/AuthProvider";
 
 /** Tiny helper for artist avatar/initials */
 function Avatar({ name = "Artist", photoURL }) {
@@ -41,10 +42,12 @@ function fmtDate(d) {
 }
 
 // Use Vite env var; fallback to localhost
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
 
 export default function Details() {
   const { id } = useParams();
+  const { user } = useAuth();
+
   const [art, setArt] = useState(null);
   const [busyLike, setBusyLike] = useState(false);
   const [busyFav, setBusyFav] = useState(false);
@@ -75,13 +78,12 @@ export default function Details() {
 
   // add favorite: POST /favorites  body { artId, userEmail }
   const doAddFavorite = async (artId) => {
-    const userEmail = localStorage.getItem("userEmail") || "";
-    if (!userEmail) throw new Error("No userEmail in localStorage");
+    if (!user?.email) throw new Error("You must be logged in to add favorites");
     const url = `${API_BASE}/favorites`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ artId, userEmail }),
+      body: JSON.stringify({ artId, userEmail: user.email }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -174,7 +176,12 @@ export default function Details() {
       await doAddFavorite(id);
       Swal.fire({ icon: "success", title: "Added to favorites", timer: 1200, showConfirmButton: false });
     } catch (e) {
-      Swal.fire({ icon: "error", title: "Couldn’t favorite", text: e?.message || "Try again." });
+      // if not logged in, prompt to login
+      if (e.message && e.message.toLowerCase().includes("logged in")) {
+        Swal.fire({ icon: "warning", title: "Login required", text: "Please log in to add favorites." });
+      } else {
+        Swal.fire({ icon: "error", title: "Couldn’t favorite", text: e?.message || "Try again." });
+      }
     } finally {
       setBusyFav(false);
     }

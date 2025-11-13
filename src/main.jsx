@@ -13,6 +13,7 @@ import PrivateRoute from './routes/PrivateRoute.jsx';
 import AddArtwork from './pages/AddArtwork.jsx';
 import Details from './pages/Details.jsx';
 import Gallery from './pages/Gallery.jsx';
+import Favorites from './pages/Favorites.jsx';
 
 const router = createBrowserRouter ([
   {
@@ -46,6 +47,10 @@ const router = createBrowserRouter ([
       {
         path: 'gallery',
         element: <PrivateRoute><Gallery/></PrivateRoute>
+      },
+      {
+        path: 'favorites',
+        element: <PrivateRoute><Favorites/></PrivateRoute>
       }
     ]
   },
