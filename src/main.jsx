@@ -9,6 +9,9 @@ import ErrorPage from './pages/ErrorPage.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Explore from './pages/Explore.jsx';
+import PrivateRoute from './routes/PrivateRoute.jsx';
+import AddArtwork from './pages/AddArtwork.jsx';
+import Details from './pages/Details.jsx';
 
 const router = createBrowserRouter ([
   {
@@ -32,7 +35,12 @@ const router = createBrowserRouter ([
         element: <Explore/>
       },
       {
-        
+        path: 'add-artwork',
+        element: <PrivateRoute><AddArtwork/></PrivateRoute>
+      },
+      {
+        path: 'art/:id',
+        element: <PrivateRoute><Details/></PrivateRoute>
       }
     ]
   },

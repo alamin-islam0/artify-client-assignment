@@ -1,10 +1,10 @@
+// src/pages/AddArtwork.jsx
 import React, { useState } from "react";
-import Swal from "sweetalert2";
-
-// API base (set REACT_APP_API_URL in env or it will use relative path)
-const API_BASE = process.env.REACT_APP_API_URL || "";
+import { useNavigate } from "react-router-dom";
 
 export default function AddArtwork() {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     image: "",
     title: "",
@@ -14,49 +14,50 @@ export default function AddArtwork() {
     dimensions: "",
     price: "",
     visibility: "public",
+    featured: true,
   });
-  const [busy, setBusy] = useState(false);
 
-  // Replace these with your auth provider or context if available
-  const userName = localStorage.getItem("userName") || "";
-  const userEmail = localStorage.getItem("userEmail") || "";
+  const [loading, setLoading] = useState(false);
+
+  // Dummy auth values (you can replace with real auth)
+  const userName = localStorage.getItem("userName") || "Guest";
+  const userEmail = localStorage.getItem("userEmail") || "guest@example.com";
   const artistPhoto = localStorage.getItem("userPhoto") || "";
-
-  const validate = () => {
-    if (!form.image) return "Image URL is required";
-    if (!form.title) return "Title is required";
-    if (!userEmail || !userName) return "You must be logged in to add artwork";
-    return null;
-  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    const err = validate();
-    if (err) return Swal.fire({ icon: "error", title: "Missing", text: err });
+    setLoading(true);
 
-    setBusy(true);
+    // build payload; keep visibility lowercase or let server normalize — server will normalize
+    const payload = {
+      ...form,
+      // Ensure server receives user info
+      userName,
+      userEmail,
+      artistPhoto,
+      // featured is boolean already
+    };
+
     try {
-      // server expects capitalized visibility values (Public/Private)
-      const payload = {
-        ...form,
-        visibility: form.visibility === "public" ? "Public" : "Private",
-        userName,
-        userEmail,
-        artistPhoto,
-      };
-
-      const res = await fetch(`${API_BASE}/arts`, {
+      const res = await fetch("http://localhost:3000/arts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || `Server responded ${res.status}`);
 
-      Swal.fire({ icon: "success", title: "Artwork Added", timer: 1200, showConfirmButton: false });
+      if (!res.ok) {
+        console.error("Server error:", data);
+        alert(data.error || `Failed to add artwork (status ${res.status})`);
+        return;
+      }
 
-      // Reset form
+      // Success — server returns created document with _id
+      alert("Artwork added successfully!");
+      console.log("Created artwork:", data);
+
+      // Reset form (optional)
       setForm({
         image: "",
         title: "",
@@ -66,82 +67,140 @@ export default function AddArtwork() {
         dimensions: "",
         price: "",
         visibility: "public",
+        featured: false,
       });
+
+      // navigate to explore page so user can see it (or to detail page)
+      // if you prefer detail page: navigate(`/art/${data._id}`)
+      navigate("/explore");
     } catch (err) {
-      console.error("createArt error", err);
-      Swal.fire({ icon: "error", title: "Failed to Add", text: err.message || "Try again." });
+      console.error("Network error:", err);
+      alert("Network error. Try again!");
     } finally {
-      setBusy(false);
+      setLoading(false);
     }
   };
 
   return (
     <section className="max-w-3xl mx-auto px-4 py-10">
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl md:text-4xl font-extrabold inter-font">Add New Artwork</h1>
-        <p className="mt-2 text-sm opacity-70 montserrat-font">Upload your creation with essential details.</p>
-      </header>
+      <h1 className="text-3xl font-bold mb-6">Add New Artwork</h1>
 
-      <form onSubmit={onSubmit} className="bg-base-100 rounded-2xl border border-base-300 shadow-sm p-6 md:p-8 grid gap-6">
+      <form onSubmit={onSubmit} className="grid gap-6 bg-base-100 border p-6 rounded-xl">
+
         {/* IMAGE URL */}
-        <div className="grid gap-1">
-          <label className="font-semibold text-sm inter-font">Image URL</label>
-          <input className="input input-bordered w-full montserrat-font" placeholder="https://example.com/art.jpg" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
+        <div>
+          <label className="block font-semibold mb-1">Image URL</label>
+          <input
+            className="input input-bordered w-full"
+            value={form.image}
+            onChange={(e) => setForm({ ...form, image: e.target.value })}
+            placeholder="https://example.com/art.jpg"
+            required
+          />
         </div>
 
         {/* TITLE */}
-        <div className="grid gap-1">
-          <label className="font-semibold text-sm inter-font">Title</label>
-          <input className="input input-bordered w-full montserrat-font" placeholder="Artwork title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+        <div>
+          <label className="block font-semibold mb-1">Title</label>
+          <input
+            className="input input-bordered w-full"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            placeholder="Artwork title"
+            required
+          />
         </div>
 
         {/* CATEGORY + MEDIUM */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="grid gap-1">
-            <label className="font-semibold text-sm inter-font">Category</label>
-            <select className="select select-bordered w-full montserrat-font" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+          <div>
+            <label className="block font-semibold mb-1">Category</label>
+            <select
+              className="select select-bordered w-full"
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+            >
               <option>Painting</option>
               <option>Digital</option>
               <option>Sculpture</option>
             </select>
           </div>
 
-          <div className="grid gap-1">
-            <label className="font-semibold text-sm inter-font">Medium</label>
-            <input className="input input-bordered w-full montserrat-font" placeholder="Acrylic, Oil, Clay etc." value={form.medium} onChange={(e) => setForm({ ...form, medium: e.target.value })} />
+          <div>
+            <label className="block font-semibold mb-1">Medium</label>
+            <input
+              className="input input-bordered w-full"
+              value={form.medium}
+              onChange={(e) => setForm({ ...form, medium: e.target.value })}
+              placeholder="e.g., Acrylic, Oil, Clay"
+            />
           </div>
         </div>
 
         {/* DESCRIPTION */}
-        <div className="grid gap-1">
-          <label className="font-semibold text-sm inter-font">Description</label>
-          <textarea className="textarea textarea-bordered h-28 montserrat-font" placeholder="Describe your artwork..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        <div>
+          <label className="block font-semibold mb-1">Description</label>
+          <textarea
+            className="textarea textarea-bordered w-full h-28"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="Describe your artwork"
+          />
         </div>
 
         {/* DIMENSIONS + PRICE */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="grid gap-1">
-            <label className="font-semibold text-sm inter-font">Dimensions</label>
-            <input className="input input-bordered montserrat-font" placeholder="eg. 20x30 inches" value={form.dimensions} onChange={(e) => setForm({ ...form, dimensions: e.target.value })} />
+          <div>
+            <label className="block font-semibold mb-1">Dimensions</label>
+            <input
+              className="input input-bordered w-full"
+              value={form.dimensions}
+              onChange={(e) => setForm({ ...form, dimensions: e.target.value })}
+              placeholder="20x30 inches"
+            />
           </div>
 
-          <div className="grid gap-1">
-            <label className="font-semibold text-sm inter-font">Price</label>
-            <input className="input input-bordered montserrat-font" type="number" placeholder="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+          <div>
+            <label className="block font-semibold mb-1">Price</label>
+            <input
+              type="number"
+              className="input input-bordered w-full"
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value })}
+              placeholder="0"
+            />
           </div>
         </div>
 
-        {/* VISIBILITY */}
-        <div className="grid gap-1">
-          <label className="font-semibold text-sm inter-font">Visibility</label>
-          <select className="select select-bordered montserrat-font" value={form.visibility} onChange={(e) => setForm({ ...form, visibility: e.target.value })}>
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-          </select>
+        {/* VISIBILITY + FEATURED */}
+        <div className="grid sm:grid-cols-2 gap-4 items-center">
+          <div>
+            <label className="block font-semibold mb-1">Visibility</label>
+            <select
+              className="select select-bordered w-full"
+              value={form.visibility}
+              onChange={(e) => setForm({ ...form, visibility: e.target.value })}
+            >
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input
+              id="featured"
+              type="checkbox"
+              className="checkbox"
+              checked={form.featured}
+              onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+            />
+            <label htmlFor="featured" className="font-semibold">Feature this artwork</label>
+          </div>
         </div>
 
-        {/* SUBMIT BUTTON */}
-        <button disabled={busy} className="btn btn-primary w-full mt-4 text-base font-semibold">{busy ? "Adding…" : "Add Artwork"}</button>
+        <button disabled={loading} className="btn btn-primary w-full mt-2">
+          {loading ? "Adding..." : "Add Artwork"}
+        </button>
       </form>
     </section>
   );
