@@ -1,4 +1,5 @@
 import React from "react";
+import { User, LayoutDashboard, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import Switch from "./ThemeSwitcher";
@@ -30,7 +31,7 @@ const Navbar = () => {
     </>
   );
   return (
-    <div className="mr-2 lg:mr-0 ml-2 lg:ml-0">
+    <div className="mr-2 lg:mr-0 ml-2 lg:ml-0 p-2">
       <div className="navbar sticky top-2 lg:top-4 lg:mt-4 mt-4 z-50 mx-auto bg-primary/90 backdrop-blur-md rounded-full px-4 lg:px-6 max-w-6xl shadow-lg border border-white/10 transition-all duration-300">
         <div className="navbar-start">
           <div className="dropdown">
@@ -61,7 +62,7 @@ const Navbar = () => {
                 })
                 return child;
               })}
-              
+
             </ul>
           </div>
           <Link to={"/"} className="flex items-center gap-2 text-white font-bold text-3xl font-montserrat tracking-wide">
@@ -75,25 +76,50 @@ const Navbar = () => {
           </ul>
         </div>
         <div className="navbar-end gap-2">
-          <div className="hidden lg:block"><Switch /></div>
+          <div className="hidden lg:block mr-2"><Switch /></div>
           {user ? (
             <>
-              {/* Desktop / Tablet: show avatar + logout button */}
-              <div className="hidden sm:flex items-center gap-3">
-                <div className="avatar">
-                  <div className="w-10 h-10 rounded-full ring ring-white/20 ring-offset-base-100 ring-offset-2">
-                    <img
-                      src={user.photoURL}
-                      alt="User"
-                      className="object-cover"
-                      referrerPolicy="no-referrer"
-                    />
+              {/* Desktop / Tablet: show avatar dropdown */}
+              <div className=" hidden lg:flex items-center">
+                <div className="dropdown dropdown-end">
+                  <div
+                    tabIndex={0}
+                    role="button"
+                    className="avatar cursor-pointer"
+                  >
+                    <div className="w-10 h-10 rounded-full ring ring-white/20 ring-offset-base-100 ring-offset-2">
+                      <img src={user.photoURL} alt="User" />
+                    </div>
                   </div>
-                </div>
 
-                <button onClick={logout} className="btn btn-sm btn-circle btn-ghost text-white tooltip tooltip-bottom" data-tip="Logout">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                </button>
+                  <ul
+                    tabIndex={0}
+                    className="menu menu-sm dropdown-content bg-base-100 gap-2 rounded-box z-[1] mt-3 w-52 p-2 shadow-lg"
+                  >
+                    <li>
+                      <Link to="/profile" className="flex items-center gap-2">
+                        <User size={18} />
+                        My Profile
+                      </Link>
+                    </li>
+
+                    <li>
+                      <Link to="/dashboard" className="flex items-center gap-2">
+                        <LayoutDashboard size={18} />
+                        Dashboard
+                      </Link>
+                    </li>
+
+                    <li className="divider"></li>
+
+                    <li>
+                      <button onClick={logout} className="flex items-center gap-2 text-error">
+                        <LogOut size={18} />
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </div>
 
               {/* Mobile: DaisyUI dropdown menu */}
@@ -124,6 +150,7 @@ const Navbar = () => {
                       <span className="badge badge-primary badge-sm">New</span>
                     </Link>
                   </li>
+                  <li><Link to="/dashboard">Dashboard</Link></li>
                   <li><Link to="/gallery">My Gallery</Link></li>
                   <li><Link to="/favorites">My Favorites</Link></li>
                   <div className="divider my-1"></div>

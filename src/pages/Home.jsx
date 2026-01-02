@@ -5,6 +5,7 @@ import AboutSection from "../components/About";
 import FeaturedArtworks from "../components/FeaturedArtworks";
 import TopArtists from "../components/TopArtists";
 import CommunityHighlights from "../components/CommunityHighlights";
+import Categories from "../components/Categories";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -57,10 +58,11 @@ export default function Home() {
   return (
     <div className="mt-4">
       <Slider />
+      <Categories />
       <AboutSection />
       <FeaturedArtworks items={items} loading={busy} />
-      <TopArtists/>
-      <CommunityHighlights/>
+      <CommunityHighlights />
+      <TopArtists />
     </div>
   );
 }
