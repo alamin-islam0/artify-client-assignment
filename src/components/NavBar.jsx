@@ -9,19 +9,19 @@ const Navbar = () => {
   const navLinks = (
     <>
       <li>
-        <Link to={"/"}>Home</Link>
+        <Link className="text-white" to={"/"}>Home</Link>
       </li>
       <li>
-        <Link to={"/explore"}>Explore</Link>
+        <Link className="text-white" to={"/explore"}>Explore</Link>
+      </li>
+      <li>
+        <Link className="text-white" to={"/add-artwork"}>Add Artwork</Link>
+      </li>
+      <li>
+        <Link className="text-white" to={"/gallery"}>My Gallery</Link>
       </li>
       {user && (
         <>
-          <li>
-            <Link to={"/add-artwork"}>Add Artwork</Link>
-          </li>
-          <li>
-            <Link to={"/gallery"}>My Gallery</Link>
-          </li>
           <li>
             <Link to={"/favorites"}>My Favorites</Link>
           </li>
@@ -30,7 +30,7 @@ const Navbar = () => {
     </>
   );
   return (
-    <div className="navbar max-w-6xl mx-auto shadow-sm z-10">
+    <div className="navbar bg-primary mt-5 rounded-full px-5 max-w-6xl mx-auto shadow-[0_6px_10px_-4px_rgba(0,0,0,0.15)] z-10">
       <div className="navbar-start">
         <div className="dropdown">
           <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
@@ -57,7 +57,7 @@ const Navbar = () => {
             {navLinks}
           </ul>
         </div>
-        <Link to={"/"} className="text-primary font-bold text-4xl">
+        <Link to={"/"} className="text-white font-bold text-4xl">
           <h1>Artify</h1>
         </Link>
       </div>
@@ -65,7 +65,7 @@ const Navbar = () => {
         <ul className="menu menu-horizontal px-1">{navLinks}</ul>
       </div>
       <div className="navbar-end">
-            <div className="pr-6"><Switch/></div>
+        <div className="pr-6"><Switch /></div>
         {user ? (
           <>
             {/* Desktop / Tablet: show avatar + logout button */}
@@ -90,14 +90,14 @@ const Navbar = () => {
                 className=" btn-ghost btn-circle avatar"
               >
                 <div className="w-12 h-12 rounded-full overflow-hidden">
-  <img
-    src={user.photoURL}
-    alt="User"
-    className="w-full h-full object-cover"
-    referrerPolicy="no-referrer"
-    onError={(e) => (e.currentTarget.src = "")}
-  />
-</div>
+                  <img
+                    src={user.photoURL}
+                    alt="User"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => (e.currentTarget.src = "")}
+                  />
+                </div>
               </div>
 
               <ul
@@ -126,7 +126,7 @@ const Navbar = () => {
             </div>
           </>
         ) : (
-          <Link to="/login" className="btn btn-primary">
+          <Link to="/login" className="btn bg-transparent text-white border border-white shadow-none !rounded-full !px-6 !py-2 hover:bg-white hover:text-black transition-all duration-300 ease-in-out">
             Login
           </Link>
         )}
