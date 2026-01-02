@@ -45,7 +45,7 @@ const Categories = () => {
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-3xl text-[#111827] md:text-5xl font-bold font-montserrat text-white">
             Browse by{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#111827]">
               Category
             </span>
           </h2>

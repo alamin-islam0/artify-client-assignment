@@ -14,56 +14,61 @@ import AddArtwork from './pages/AddArtwork.jsx';
 import Details from './pages/Details.jsx';
 import Gallery from './pages/Gallery.jsx';
 import Favorites from './pages/Favorites.jsx';
+import AboutUs from './pages/AboutUs.jsx';
 
-const router = createBrowserRouter ([
+const router = createBrowserRouter([
   {
     index: '/',
-    element: <App/>,
+    element: <App />,
     children: [
       {
         index: true,
-        element: <Home/>
+        element: <Home />
       },
       {
         path: 'login',
-        element: <Login/>
+        element: <Login />
       },
       {
         path: 'register',
-        element: <Register/>
+        element: <Register />
       },
       {
         path: 'explore',
-        element: <Explore/>
+        element: <Explore />
       },
       {
         path: 'add-artwork',
-        element: <PrivateRoute><AddArtwork/></PrivateRoute>
+        element: <PrivateRoute><AddArtwork /></PrivateRoute>
+      },
+      {
+        path: 'about',
+        element: <AboutUs />
       },
       {
         path: 'art/:id',
-        element: <Details/>
+        element: <Details />
       },
       {
         path: 'gallery',
-        element: <PrivateRoute><Gallery/></PrivateRoute>
+        element: <PrivateRoute><Gallery /></PrivateRoute>
       },
       {
         path: 'favorites',
-        element: <PrivateRoute><Favorites/></PrivateRoute>
+        element: <PrivateRoute><Favorites /></PrivateRoute>
       }
     ]
   },
   {
     path: '*',
-    element: <ErrorPage/>
+    element: <ErrorPage />
   }
 ])
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router = {router}/>
+      <RouterProvider router={router} />
     </AuthProvider>
   </StrictMode>,
 )
