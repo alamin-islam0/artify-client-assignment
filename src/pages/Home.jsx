@@ -55,7 +55,7 @@ export default function Home() {
   }, [loadFeatured]);
 
   return (
-    <div>
+    <div className="mt-4">
       <Slider />
       <AboutSection />
       <FeaturedArtworks items={items} loading={busy} />
