@@ -3,13 +3,31 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import Swal from "sweetalert2";
 
-const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+const API_BASE = (
+  import.meta.env.VITE_API_URL || "http://localhost:3000"
+).replace(/\/$/, "");
 
 export default function Favorites() {
   const { user, loading: authLoading } = useAuth();
   const [list, setList] = useState([]); // normalized: { favoriteId, createdAt, art }
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
+
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("");
+
+  const filteredList = list.filter((item) => {
+    const title = item.art?.title || "";
+    const medium = item.art?.medium || "";
+    const category = item.art?.category || "";
+
+    const matchesSearch =
+      title.toLowerCase().includes(search.toLowerCase()) ||
+      medium.toLowerCase().includes(search.toLowerCase());
+    const matchesFilter = filter ? category === filter : true;
+
+    return matchesSearch && matchesFilter;
+  });
 
   // Try multiple endpoints to maximize compatibility
   const fetchFavoritesFor = async (email, signal) => {
@@ -42,43 +60,68 @@ export default function Favorites() {
           const favs = json.favorites;
           const arts = json.arts;
           return favs.map((f) => {
-            const art = arts.find((a) => String(a._id) === String(f.artId) || String(a._id) === String(f.artId?._id));
-            return { favoriteId: f._id, createdAt: f.createdAt, art: art || null };
+            const art = arts.find(
+              (a) =>
+                String(a._id) === String(f.artId) ||
+                String(a._id) === String(f.artId?._id)
+            );
+            return {
+              favoriteId: f._id,
+              createdAt: f.createdAt,
+              art: art || null,
+            };
           });
         }
         // maybe server returned { data: [...] }
         if (Array.isArray(json.data)) {
           return json.data.map((f) => {
-            if (f.art) return { favoriteId: f.favoriteId ?? f._id ?? null, createdAt: f.createdAt, art: f.art };
+            if (f.art)
+              return {
+                favoriteId: f.favoriteId ?? f._id ?? null,
+                createdAt: f.createdAt,
+                art: f.art,
+              };
             // assume direct art docs
             return { favoriteId: null, createdAt: null, art: f };
           });
         }
       }
     } catch (e) {
-      if (e.name !== "AbortError") console.warn("fetch /favorites?email failed", e);
+      if (e.name !== "AbortError")
+        console.warn("fetch /favorites?email failed", e);
     }
 
     // 2) /favorites?userEmail=
     try {
-      const url = `${API_BASE}/favorites?userEmail=${encodeURIComponent(email)}`;
+      const url = `${API_BASE}/favorites?userEmail=${encodeURIComponent(
+        email
+      )}`;
       const res = await fetch(url, { method: "GET", signal });
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json)) {
           return json.map((f) => {
             if (f.favoriteId || f._id) {
-              return { favoriteId: f.favoriteId ?? f._id, createdAt: f.createdAt ?? f.createdAt, art: f.art ?? null };
+              return {
+                favoriteId: f.favoriteId ?? f._id,
+                createdAt: f.createdAt ?? f.createdAt,
+                art: f.art ?? null,
+              };
             }
             return { favoriteId: null, createdAt: null, art: f };
           });
         }
         if (Array.isArray(json.data)) {
-          return json.data.map((f) => ({ favoriteId: f.favoriteId ?? f._id ?? null, createdAt: f.createdAt, art: f.art ?? f }));
+          return json.data.map((f) => ({
+            favoriteId: f.favoriteId ?? f._id ?? null,
+            createdAt: f.createdAt,
+            art: f.art ?? f,
+          }));
         }
       }
     } catch (e) {
-      if (e.name !== "AbortError") console.warn("fetch /favorites?userEmail failed", e);
+      if (e.name !== "AbortError")
+        console.warn("fetch /favorites?userEmail failed", e);
     }
 
     // 3) Some servers return favorites by POST or different shape — return empty fallback
@@ -97,7 +140,11 @@ export default function Favorites() {
     } catch (err) {
       if (err.name === "AbortError") return;
       console.error("Failed to load favorites:", err);
-      Swal.fire({ icon: "error", title: "Failed to load", text: err?.message || "Could not fetch favorites" });
+      Swal.fire({
+        icon: "error",
+        title: "Failed to load",
+        text: err?.message || "Could not fetch favorites",
+      });
     } finally {
       setLoading(false);
     }
@@ -114,7 +161,9 @@ export default function Favorites() {
     // artOrFavoriteId could be art._id (from UI) or favoriteId; detect from list
     // find matching favorite record
     const found = list.find(
-      (f) => String(f.favoriteId) === String(artOrFavoriteId) || String(f.art?._id) === String(artOrFavoriteId)
+      (f) =>
+        String(f.favoriteId) === String(artOrFavoriteId) ||
+        String(f.art?._id) === String(artOrFavoriteId)
     );
     const favoriteId = found?.favoriteId ?? null;
     const artId = found?.art?._id ?? artOrFavoriteId;
@@ -135,7 +184,13 @@ export default function Favorites() {
 
     // optimistic update: remove from UI
     const previous = list;
-    setList((s) => s.filter((f) => String(f.art?._id) !== String(artId) && String(f.favoriteId) !== String(favoriteId)));
+    setList((s) =>
+      s.filter(
+        (f) =>
+          String(f.art?._id) !== String(artId) &&
+          String(f.favoriteId) !== String(favoriteId)
+      )
+    );
 
     try {
       // 1) if we have favoriteId, try DELETE /favorites/:id
@@ -149,7 +204,9 @@ export default function Favorites() {
       } else {
         // 2) fallback: DELETE /favorites?userEmail=...&artId=...
         if (!user?.email) throw new Error("Not authenticated");
-        const url = `${API_BASE}/favorites?userEmail=${encodeURIComponent(user.email)}&artId=${encodeURIComponent(artId)}`;
+        const url = `${API_BASE}/favorites?userEmail=${encodeURIComponent(
+          user.email
+        )}&artId=${encodeURIComponent(artId)}`;
         const res = await fetch(url, { method: "DELETE" });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
@@ -157,7 +214,12 @@ export default function Favorites() {
         }
       }
 
-      await Swal.fire({ icon: "success", title: "Removed", timer: 1000, showConfirmButton: false });
+      await Swal.fire({
+        icon: "success",
+        title: "Removed",
+        timer: 1000,
+        showConfirmButton: false,
+      });
       // reload to ensure consistent state
       const controller = new AbortController();
       const fresh = await fetchFavoritesFor(user.email, controller.signal);
@@ -166,7 +228,11 @@ export default function Favorites() {
       console.error("Failed to remove favorite:", err);
       // rollback
       setList(previous);
-      Swal.fire({ icon: "error", title: "Failed", text: err?.message || "Try again." });
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: err?.message || "Try again.",
+      });
     } finally {
       setBusyId(null);
     }
@@ -194,12 +260,56 @@ export default function Favorites() {
       {/* Heading */}
       <header className="mb-6">
         <h1 className="text-3xl font-extrabold inter-font">My Favorites</h1>
-        <p className="mt-1 text-sm opacity-70 montserrat-font">Your saved artworks in one place.</p>
+        <p className="mt-1 text-sm opacity-70 montserrat-font">
+          Your saved artworks in one place.
+        </p>
       </header>
 
       <div className="rounded-2xl border border-base-300 bg-base-100 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-base-300">
-          <p className="text-sm montserrat-font">Total items: <span className="font-semibold">{list.length}</span></p>
+        <div className="flex flex-col sm:flex-row gap-4 px-4 py-3 border-b border-base-300">
+          <div className="form-control flex-1">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search favorites..."
+                className="input input-bordered w-full pl-10"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 opacity-50"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
+          <select
+            className="select select-bordered w-full sm:w-auto"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="">All Categories</option>
+            <option value="Painting">Painting</option>
+            <option value="Digital">Digital</option>
+            <option value="Sculpture">Sculpture</option>
+            <option value="Uncategorized">Uncategorized</option>
+          </select>
+        </div>
+
+        <div className="flex items-center justify-between px-4 py-3 border-b border-base-300 bg-base-50/50">
+          <p className="text-sm montserrat-font">
+            Showing <span className="font-semibold">{filteredList.length}</span>{" "}
+            of <span className="font-semibold">{list.length}</span> items
+          </p>
         </div>
 
         <div className="overflow-x-auto">
@@ -215,56 +325,101 @@ export default function Favorites() {
             </thead>
 
             <tbody>
-              {loading && Array.from({ length: 5 }).map((_, i) => (
-                <tr key={`sk-${i}`}>
-                  <td><span className="inline-block h-4 w-6 rounded bg-base-200 animate-pulse" /></td>
-                  <td>
-                    <div className="flex items-center gap-3">
-                      <div className="h-14 w-20 rounded-lg bg-base-200 animate-pulse" />
-                      <div><div className="h-4 w-40 rounded bg-base-200 animate-pulse mb-2" /><div className="h-3 w-24 rounded bg-base-200 animate-pulse" /></div>
-                    </div>
-                  </td>
-                  <td><span className="inline-block h-4 w-24 rounded bg-base-200 animate-pulse" /></td>
-                  <td className="text-right"><span className="inline-block h-4 w-12 rounded bg-base-200 animate-pulse" /></td>
-                  <td className="text-right"><span className="inline-block h-9 w-24 rounded bg-base-200 animate-pulse" /></td>
-                </tr>
-              ))}
-
-              {!loading && list.map((f, idx) => {
-                const art = f.art || {};
-                return (
-                  <tr key={art._id ?? f.favoriteId ?? idx} className="hover">
-                    <td className="font-semibold">{idx + 1}</td>
+              {loading &&
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={`sk-${i}`}>
+                    <td>
+                      <span className="inline-block h-4 w-6 rounded bg-base-200 animate-pulse" />
+                    </td>
                     <td>
                       <div className="flex items-center gap-3">
-                        <img src={art.image} alt={art.title} className="h-14 w-20 rounded-lg object-cover ring-1 ring-base-300" loading="lazy" />
-                        <div className="min-w-0">
-                          <div className="inter-font font-semibold line-clamp-1">{art.title || "Untitled"}</div>
-                          <div className="text-xs opacity-70 montserrat-font line-clamp-1">{art.medium || "—"}</div>
+                        <div className="h-14 w-20 rounded-lg bg-base-200 animate-pulse" />
+                        <div>
+                          <div className="h-4 w-40 rounded bg-base-200 animate-pulse mb-2" />
+                          <div className="h-3 w-24 rounded bg-base-200 animate-pulse" />
                         </div>
                       </div>
                     </td>
-                    <td><span className="badge badge-primary font-semibold">{art.category || "—"}</span></td>
-                    <td className="text-right montserrat-font">{art.price ? `$${Number(art.price).toLocaleString()}` : "—"}</td>
+                    <td>
+                      <span className="inline-block h-4 w-24 rounded bg-base-200 animate-pulse" />
+                    </td>
                     <td className="text-right">
-                      <button
-                        onClick={() => handleRemove(f.favoriteId ?? art._id)}
-                        className={`btn btn-outline btn-sm montserrat-font ${busyId === (art._id ?? f.favoriteId) ? "pointer-events-none opacity-60" : ""}`}
-                      >
-                        {busyId === (art._id ?? f.favoriteId) ? (<><span className="loading loading-spinner loading-xs" /> Removing…</>) : "Remove"}
-                      </button>
+                      <span className="inline-block h-4 w-12 rounded bg-base-200 animate-pulse" />
+                    </td>
+                    <td className="text-right">
+                      <span className="inline-block h-9 w-24 rounded bg-base-200 animate-pulse" />
                     </td>
                   </tr>
-                );
-              })}
+                ))}
+
+              {!loading &&
+                filteredList.map((f, idx) => {
+                  const art = f.art || {};
+                  return (
+                    <tr key={art._id ?? f.favoriteId ?? idx} className="hover">
+                      <td className="font-semibold">{idx + 1}</td>
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={art.image}
+                            alt={art.title}
+                            className="h-14 w-20 rounded-lg object-cover ring-1 ring-base-300"
+                            loading="lazy"
+                          />
+                          <div className="min-w-0">
+                            <div className="inter-font font-semibold line-clamp-1">
+                              {art.title || "Untitled"}
+                            </div>
+                            <div className="text-xs opacity-70 montserrat-font line-clamp-1">
+                              {art.medium || "—"}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="badge badge-primary font-semibold">
+                          {art.category || "—"}
+                        </span>
+                      </td>
+                      <td className="text-right montserrat-font">
+                        {art.price
+                          ? `$${Number(art.price).toLocaleString()}`
+                          : "—"}
+                      </td>
+                      <td className="text-right">
+                        <button
+                          onClick={() => handleRemove(f.favoriteId ?? art._id)}
+                          className={`btn btn-outline btn-sm montserrat-font ${
+                            busyId === (art._id ?? f.favoriteId)
+                              ? "pointer-events-none opacity-60"
+                              : ""
+                          }`}
+                        >
+                          {busyId === (art._id ?? f.favoriteId) ? (
+                            <>
+                              <span className="loading loading-spinner loading-xs" />{" "}
+                              Removing…
+                            </>
+                          ) : (
+                            "Remove"
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
 
         {!loading && list.length === 0 && (
           <div className="p-10 text-center">
-            <h3 className="text-lg font-semibold inter-font">No favorites yet</h3>
-            <p className="opacity-70 montserrat-font">Explore artworks and add some to your favorites.</p>
+            <h3 className="text-lg font-semibold inter-font">
+              No favorites yet
+            </h3>
+            <p className="opacity-70 montserrat-font">
+              Explore artworks and add some to your favorites.
+            </p>
           </div>
         )}
       </div>

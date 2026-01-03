@@ -10,24 +10,41 @@ const Navbar = () => {
   const navLinks = (
     <>
       <li>
-        <Link className="text-white" to={"/"}>Home</Link>
+        <Link className="text-white" to={"/"}>
+          Home
+        </Link>
       </li>
       <li>
-        <Link className="text-white" to={"/explore"}>Explore</Link>
+        <Link className="text-white" to={"/explore"}>
+          Explore
+        </Link>
       </li>
       <li>
-        <Link className="text-white" to={"/about"}>About Us</Link>
+        <Link className="text-white" to={"/about"}>
+          About Us
+        </Link>
       </li>
       <li>
-        <Link className="text-white" to={"/add-artwork"}>Add Artwork</Link>
+        <Link className="text-white" to={"/contact"}>
+          Contact
+        </Link>
       </li>
       <li>
-        <Link className="text-white" to={"/gallery"}>My Gallery</Link>
+        <Link className="text-white" to={"/add-artwork"}>
+          Add Artwork
+        </Link>
+      </li>
+      <li>
+        <Link className="text-white" to={"/gallery"}>
+          My Gallery
+        </Link>
       </li>
       {user && (
         <>
           <li>
-            <Link className="text-white" to={"/favorites"}>My Favorites</Link>
+            <Link className="text-white" to={"/favorites"}>
+              My Favorites
+            </Link>
           </li>
         </>
       )}
@@ -38,7 +55,11 @@ const Navbar = () => {
       <div className="navbar sticky top-2 lg:top-4 lg:mt-4 mt-4 z-50 mx-auto bg-primary/90 backdrop-blur-md rounded-full px-4 lg:px-6 max-w-6xl shadow-lg border border-white/10 transition-all duration-300">
         <div className="navbar-start">
           <div className="dropdown">
-            <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden text-white">
+            <div
+              tabIndex={0}
+              role="button"
+              className="btn btn-ghost lg:hidden text-white"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6"
@@ -58,28 +79,31 @@ const Navbar = () => {
               tabIndex="-1"
               className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow-lg gap-2"
             >
-
-              {React.Children.map(navLinks.props.children, child => {
-                if (child) return React.cloneElement(child, {
-                  children: React.cloneElement(child.props.children, { className: "text-base-content" })
-                })
+              {React.Children.map(navLinks.props.children, (child) => {
+                if (child)
+                  return React.cloneElement(child, {
+                    children: React.cloneElement(child.props.children, {
+                      className: "text-base-content",
+                    }),
+                  });
                 return child;
               })}
-
             </ul>
           </div>
-          <Link to={"/"} className="flex items-center gap-2 text-white font-bold text-3xl font-montserrat tracking-wide">
+          <Link
+            to={"/"}
+            className="flex items-center gap-2 text-white font-bold text-3xl font-montserrat tracking-wide"
+          >
             <span>Artify</span>
           </Link>
         </div>
         <div className="navbar-center hidden lg:flex">
-          <ul className="menu menu-horizontal px-1 gap-2">
-
-            {navLinks}
-          </ul>
+          <ul className="menu menu-horizontal px-1 gap-2">{navLinks}</ul>
         </div>
         <div className="navbar-end gap-2">
-          <div className="hidden lg:block mr-2"><Switch /></div>
+          <div className="hidden lg:block mr-2">
+            <Switch />
+          </div>
           {user ? (
             <>
               {/* Desktop / Tablet: show avatar dropdown */}
@@ -116,7 +140,10 @@ const Navbar = () => {
                     <li className="divider"></li>
 
                     <li>
-                      <button onClick={logout} className="flex items-center gap-2 text-error">
+                      <button
+                        onClick={logout}
+                        className="flex items-center gap-2 text-error"
+                      >
                         <LogOut size={18} />
                         Logout
                       </button>
@@ -138,7 +165,10 @@ const Navbar = () => {
                       alt="User"
                       className="object-cover"
                       referrerPolicy="no-referrer"
-                      onError={(e) => (e.currentTarget.src = "https://ui-avatars.com/api/?name=User")}
+                      onError={(e) =>
+                        (e.currentTarget.src =
+                          "https://ui-avatars.com/api/?name=User")
+                      }
                     />
                   </div>
                 </div>
@@ -153,17 +183,34 @@ const Navbar = () => {
                       <span className="badge badge-primary badge-sm">New</span>
                     </Link>
                   </li>
-                  <li><Link to="/dashboard">Dashboard</Link></li>
-                  <li><Link to="/gallery">My Gallery</Link></li>
-                  <li><Link to="/favorites">My Favorites</Link></li>
+                  <li>
+                    <Link to="/dashboard">Dashboard</Link>
+                  </li>
+                  <li>
+                    <Link to="/gallery">My Gallery</Link>
+                  </li>
+                  <li>
+                    <Link to="/favorites">My Favorites</Link>
+                  </li>
                   <div className="divider my-1"></div>
-                  <li><button onClick={logout} className="text-error">Logout</button></li>
-                  <li className="mt-2"><div className="flex justify-between items-center bg-base-200"><span className="text-xs">Theme</span> <Switch /></div></li>
+                  <li>
+                    <button onClick={logout} className="text-error">
+                      Logout
+                    </button>
+                  </li>
+                  <li className="mt-2">
+                    <div className="flex justify-between items-center bg-base-200">
+                      <span className="text-xs">Theme</span> <Switch />
+                    </div>
+                  </li>
                 </ul>
               </div>
             </>
           ) : (
-            <Link to="/login" className="btn bg-transparent text-white border border-white shadow-none !rounded-full !px-6 !py-2 hover:bg-white hover:text-black transition-all duration-300 ease-in-out">
+            <Link
+              to="/login"
+              className="btn bg-transparent text-white border border-white shadow-none !rounded-full !px-6 !py-2 hover:bg-white hover:text-black transition-all duration-300 ease-in-out"
+            >
               Login
             </Link>
           )}
