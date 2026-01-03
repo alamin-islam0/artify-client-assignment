@@ -1,9 +1,9 @@
-// src/pages/Login.jsx
 import { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import Swal from "sweetalert2";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import axios from "axios";
 
 export default function Login() {
   const { emailLogin, googleLogin } = useAuth();
@@ -20,7 +20,19 @@ export default function Login() {
     e.preventDefault();
     try {
       setBusy(true);
-      await emailLogin(email, password);
+      const res = await emailLogin(email, password);
+
+      // Save user to backend (Sync logic)
+      const userInfo = {
+        name: res.user?.displayName,
+        email: res.user?.email,
+        photoURL: res.user?.photoURL,
+      };
+      await axios.post(
+        `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/users`,
+        userInfo
+      );
+
       Swal.fire({
         title: "Login Successful!",
         text: "Welcome back to Artify!",
@@ -43,7 +55,20 @@ export default function Login() {
   const handleGoogle = async () => {
     try {
       setBusy(true);
-      await googleLogin();
+      setBusy(true);
+      const res = await googleLogin();
+
+      // Save user to backend (Sync logic)
+      const userInfo = {
+        name: res.user?.displayName,
+        email: res.user?.email,
+        photoURL: res.user?.photoURL,
+      };
+      await axios.post(
+        `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/users`,
+        userInfo
+      );
+
       Swal.fire({
         title: "Logged in with Google!",
         icon: "success",
@@ -202,7 +227,7 @@ export default function Login() {
                     d="M272 108.2c39.6-.6 77.3 14.9 105.9 42.8l79.1-79.1C406.1 26.3 343.6 0 272 0 164.7 0 73 62.1 28.7 150.2l89.5 70.7C139.9 156 200.5 108.2 272 108.2z"
                   />
                 </svg>
-                <span >Continue with Google</span>
+                <span>Continue with Google</span>
               </>
             )}
           </button>

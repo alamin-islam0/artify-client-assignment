@@ -1,4 +1,3 @@
-// src/components/ThemeSwitcher.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { Sun, Moon } from "lucide-react";
 
@@ -24,7 +23,9 @@ export default function ThemeSwitcher({ size = 18 }) {
     } catch (e) {}
     // no stored value -> infer from system
     if (typeof window !== "undefined" && window.matchMedia) {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      return window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
     }
     return "light";
   });
@@ -77,9 +78,13 @@ export default function ThemeSwitcher({ size = 18 }) {
         const handler = (e) => {
           setTheme(e.matches ? "dark" : "light");
         };
-        mq.addEventListener ? mq.addEventListener("change", handler) : mq.addListener(handler);
+        mq.addEventListener
+          ? mq.addEventListener("change", handler)
+          : mq.addListener(handler);
         return () => {
-          mq.removeEventListener ? mq.removeEventListener("change", handler) : mq.removeListener(handler);
+          mq.removeEventListener
+            ? mq.removeEventListener("change", handler)
+            : mq.removeListener(handler);
         };
       }
     } catch (e) {}
@@ -108,8 +113,12 @@ export default function ThemeSwitcher({ size = 18 }) {
         style={{
           width: 28,
           height: 28,
-          background: isDark ? "linear-gradient(135deg,#1f2937,#0f172a)" : "linear-gradient(135deg,#fff,#f3f4f6)",
-          boxShadow: isDark ? "inset 0 -6px 18px rgba(0,0,0,0.4)" : "0 1px 2px rgba(0,0,0,0.06)",
+          background: isDark
+            ? "linear-gradient(135deg,#1f2937,#0f172a)"
+            : "linear-gradient(135deg,#fff,#f3f4f6)",
+          boxShadow: isDark
+            ? "inset 0 -6px 18px rgba(0,0,0,0.4)"
+            : "0 1px 2px rgba(0,0,0,0.06)",
           transition: "all 220ms ease",
         }}
       >

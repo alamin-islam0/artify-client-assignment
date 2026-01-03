@@ -30,19 +30,19 @@ const Navbar = () => {
         </Link>
       </li>
       <li>
-        <Link className="text-white" to={"/add-artwork"}>
+        <Link className="text-white" to={"/dashboard/add-artwork"}>
           Add Artwork
         </Link>
       </li>
       <li>
-        <Link className="text-white" to={"/gallery"}>
+        <Link className="text-white" to={"/dashboard/gallery"}>
           My Gallery
         </Link>
       </li>
       {user && (
         <>
           <li>
-            <Link className="text-white" to={"/favorites"}>
+            <Link className="text-white" to={"/dashboard/favorites"}>
               My Favorites
             </Link>
           </li>
@@ -124,7 +124,10 @@ const Navbar = () => {
                     className="menu menu-sm dropdown-content bg-base-100 gap-2 rounded-box z-[1] mt-3 w-52 p-2 shadow-lg"
                   >
                     <li>
-                      <Link to="/profile" className="flex items-center gap-2">
+                      <Link
+                        to="/dashboard/profile"
+                        className="flex items-center gap-2"
+                      >
                         <User size={18} />
                         My Profile
                       </Link>
@@ -178,7 +181,7 @@ const Navbar = () => {
                   className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow-lg"
                 >
                   <li>
-                    <Link to="/profile" className="justify-between">
+                    <Link to="/dashboard/profile" className="justify-between">
                       Profile
                       <span className="badge badge-primary badge-sm">New</span>
                     </Link>
@@ -187,10 +190,10 @@ const Navbar = () => {
                     <Link to="/dashboard">Dashboard</Link>
                   </li>
                   <li>
-                    <Link to="/gallery">My Gallery</Link>
+                    <Link to="/dashboard/gallery">My Gallery</Link>
                   </li>
                   <li>
-                    <Link to="/favorites">My Favorites</Link>
+                    <Link to="/dashboard/favorites">My Favorites</Link>
                   </li>
                   <div className="divider my-1"></div>
                   <li>

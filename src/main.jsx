@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import AuthProvider from "./providers/AuthProvider.jsx";
 import ErrorPage from "./pages/ErrorPage.jsx";
@@ -16,10 +16,19 @@ import Gallery from "./pages/Gallery.jsx";
 import Favorites from "./pages/Favorites.jsx";
 import AboutUs from "./pages/AboutUs.jsx";
 import Contact from "./pages/Contact.jsx";
+import DashboardLayout from "./layouts/DashboardLayout.jsx";
+import DashboardHome from "./pages/Dashboard/DashboardHome.jsx";
+import Profile from "./pages/Dashboard/Profile.jsx";
+import AdminRoute from "./routes/AdminRoute.jsx";
+import DashboardAdminHome from "./pages/Dashboard/Admin/DashboardAdminHome.jsx";
+import ManageUsers from "./pages/Dashboard/Admin/ManageUsers.jsx";
+import ManageArts from "./pages/Dashboard/Admin/ManageArts.jsx";
+import ReportedArts from "./pages/Dashboard/Admin/ReportedArts.jsx";
+import AdminProfile from "./pages/Dashboard/Admin/AdminProfile.jsx";
 
 const router = createBrowserRouter([
   {
-    index: "/",
+    path: "/",
     element: <App />,
     children: [
       {
@@ -39,14 +48,6 @@ const router = createBrowserRouter([
         element: <Explore />,
       },
       {
-        path: "add-artwork",
-        element: (
-          <PrivateRoute>
-            <AddArtwork />
-          </PrivateRoute>
-        ),
-      },
-      {
         path: "about",
         element: <AboutUs />,
       },
@@ -58,21 +59,66 @@ const router = createBrowserRouter([
         path: "art/:id",
         element: <Details />,
       },
+    ],
+  },
+  {
+    path: "dashboard",
+    element: (
+      <PrivateRoute>
+        <DashboardLayout />
+      </PrivateRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <DashboardHome />,
+      },
+      {
+        path: "add-artwork",
+        element: <AddArtwork />,
+      },
       {
         path: "gallery",
-        element: (
-          <PrivateRoute>
-            <Gallery />
-          </PrivateRoute>
-        ),
+        element: <Gallery />,
       },
       {
         path: "favorites",
+        element: <Favorites />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
+      },
+      // Admin Routes
+      {
+        path: "admin",
         element: (
-          <PrivateRoute>
-            <Favorites />
-          </PrivateRoute>
+          <AdminRoute>
+            <Outlet />
+          </AdminRoute>
         ),
+        children: [
+          {
+            index: true,
+            element: <DashboardAdminHome />,
+          },
+          {
+            path: "manage-users",
+            element: <ManageUsers />,
+          },
+          {
+            path: "manage-arts",
+            element: <ManageArts />,
+          },
+          {
+            path: "reported-arts",
+            element: <ReportedArts />,
+          },
+          {
+            path: "profile",
+            element: <AdminProfile />,
+          },
+        ],
       },
     ],
   },
@@ -82,10 +128,16 @@ const router = createBrowserRouter([
   },
 ]);
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={router} />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
     </AuthProvider>
   </StrictMode>
 );

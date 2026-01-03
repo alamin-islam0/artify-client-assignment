@@ -1,10 +1,11 @@
-// src/pages/AboutSection.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { Palette, Heart, Users, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Fade, Slide } from "react-awesome-reveal";
 
-const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+const API_BASE = (
+  import.meta.env.VITE_API_URL || "http://localhost:3000"
+).replace(/\/$/, "");
 
 export default function AboutSection() {
   const [loading, setLoading] = useState(true);
@@ -19,13 +20,15 @@ export default function AboutSection() {
     setLoading(true);
     try {
       const artsUrl = `${API_BASE}/arts?limit=10000&page=1`;
-      const pArts = fetch(artsUrl, { method: "GET", signal }).then(async (r) => {
-        if (!r.ok) {
-          const err = await r.json().catch(() => ({}));
-          throw new Error(err.error || `Failed to fetch arts (${r.status})`);
+      const pArts = fetch(artsUrl, { method: "GET", signal }).then(
+        async (r) => {
+          if (!r.ok) {
+            const err = await r.json().catch(() => ({}));
+            throw new Error(err.error || `Failed to fetch arts (${r.status})`);
+          }
+          return r.json();
         }
-        return r.json();
-      });
+      );
 
       const likesUrl = `${API_BASE}/likes/total`;
       const pLikes = fetch(likesUrl, { method: "GET", signal })
@@ -51,12 +54,19 @@ export default function AboutSection() {
         artsArray = [];
       }
 
-      const totalArtworks = typeof artsJson.total === "number" ? artsJson.total : artsArray.length;
-      const totalLikes = typeof likesJson.totalLikes === "number" ? likesJson.totalLikes : (likesJson.total || 0);
+      const totalArtworks =
+        typeof artsJson.total === "number" ? artsJson.total : artsArray.length;
+      const totalLikes =
+        typeof likesJson.totalLikes === "number"
+          ? likesJson.totalLikes
+          : likesJson.total || 0;
 
       const artistEmails = new Set();
       for (const a of artsArray) {
-        const e = (a && (a.userEmail || a.artistEmail || a.email || a.user_email || "")) || "";
+        const e =
+          (a &&
+            (a.userEmail || a.artistEmail || a.email || a.user_email || "")) ||
+          "";
         if (e) artistEmails.add(String(e).toLowerCase());
       }
       const totalArtists = artistEmails.size;
@@ -70,6 +80,7 @@ export default function AboutSection() {
 
       setStats({ totalArtworks, totalLikes, totalArtists, totalCategories });
     } catch (err) {
+      if (err.name === "AbortError") return;
       console.error("loadStats error:", err);
     } finally {
       setLoading(false);
@@ -98,14 +109,16 @@ export default function AboutSection() {
               </span>
 
               <h2 className="mt-4 text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
-                A home for creative expression—<span className="text-primary">discover</span>,{" "}
+                A home for creative expression—
+                <span className="text-primary">discover</span>,{" "}
                 <span className="text-primary">share</span>, and{" "}
                 <span className="text-primary">celebrate</span> art.
               </h2>
 
               <p className="mt-4 text-base md:text-lg opacity-80">
-                Artify helps artists showcase their work with beautiful galleries,
-                connect with a global audience, and grow through appreciation and interaction.
+                Artify helps artists showcase their work with beautiful
+                galleries, connect with a global audience, and grow through
+                appreciation and interaction.
               </p>
 
               <ul className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -116,7 +129,8 @@ export default function AboutSection() {
                   <div>
                     <h3 className="font-semibold">Beautiful Galleries</h3>
                     <p className="text-sm opacity-70">
-                      Upload artworks with categories, mediums, and rich descriptions.
+                      Upload artworks with categories, mediums, and rich
+                      descriptions.
                     </p>
                   </div>
                 </li>
@@ -211,9 +225,13 @@ export default function AboutSection() {
                 <div className="rounded-2xl border border-primary/30 bg-base-100/90 backdrop-blur p-3 shadow-lg">
                   <div className="flex items-center gap-2">
                     <Heart className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-semibold">7,540 likes today</span>
+                    <span className="text-sm font-semibold">
+                      7,540 likes today
+                    </span>
                   </div>
-                  <p className="text-xs opacity-70 mt-1">Artists thriving with Artify.</p>
+                  <p className="text-xs opacity-70 mt-1">
+                    Artists thriving with Artify.
+                  </p>
                 </div>
               </Fade>
             </div>
@@ -223,22 +241,30 @@ export default function AboutSection() {
         <Fade direction="up" cascade damping={0.12} triggerOnce>
           <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-md">
             <div className="rounded-xl border border-base-300/60 bg-base-200 p-4 text-center">
-              <div className="text-2xl font-extrabold">{loading ? "—" : stats.totalArtworks.toLocaleString()}</div>
+              <div className="text-2xl font-extrabold">
+                {loading ? "—" : stats.totalArtworks.toLocaleString()}
+              </div>
               <div className="text-xs opacity-70">Artworks</div>
             </div>
 
             <div className="rounded-xl border border-base-300/60 bg-base-200 p-4 text-center">
-              <div className="text-2xl font-extrabold">{loading ? "—" : stats.totalLikes.toLocaleString()}</div>
+              <div className="text-2xl font-extrabold">
+                {loading ? "—" : stats.totalLikes.toLocaleString()}
+              </div>
               <div className="text-xs opacity-70">Total Likes</div>
             </div>
 
             <div className="rounded-xl border border-base-300/60 bg-base-200 p-4 text-center">
-              <div className="text-2xl font-extrabold">{loading ? "—" : stats.totalArtists.toLocaleString()}</div>
+              <div className="text-2xl font-extrabold">
+                {loading ? "—" : stats.totalArtists.toLocaleString()}
+              </div>
               <div className="text-xs opacity-70">Artists</div>
             </div>
 
             <div className="rounded-xl border border-base-300/60 bg-base-200 p-4 text-center">
-              <div className="text-2xl font-extrabold">{loading ? "—" : stats.totalCategories.toLocaleString()}</div>
+              <div className="text-2xl font-extrabold">
+                {loading ? "—" : stats.totalCategories.toLocaleString()}
+              </div>
               <div className="text-xs opacity-70">Categories</div>
             </div>
           </div>

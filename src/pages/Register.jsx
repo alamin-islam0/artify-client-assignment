@@ -1,9 +1,9 @@
-// src/pages/Register.jsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import Swal from "sweetalert2";
 import { Mail, Lock, User, Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
+import axios from "axios";
 
 export default function Register() {
   const { register, googleLogin } = useAuth();
@@ -34,6 +34,18 @@ export default function Register() {
     try {
       setBusy(true);
       await register(form);
+
+      // Save user to backend
+      const userInfo = {
+        name: form.name,
+        email: form.email,
+        photoURL: form.photoURL || "",
+      };
+      await axios.post(
+        `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/users`,
+        userInfo
+      );
+
       await Swal.fire({
         title: "Account Created!",
         text: "Welcome to Artify 🎨",
@@ -56,7 +68,19 @@ export default function Register() {
   const handleGoogle = async () => {
     try {
       setBusy(true);
-      await googleLogin();
+      const res = await googleLogin();
+
+      // Save user to backend
+      const userInfo = {
+        name: res.user?.displayName || res.user?.email?.split("@")[0],
+        email: res.user?.email,
+        photoURL: res.user?.photoURL || "",
+      };
+      await axios.post(
+        `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/users`,
+        userInfo
+      );
+
       await Swal.fire({
         title: "Signed up with Google!",
         icon: "success",
@@ -211,7 +235,12 @@ export default function Register() {
             ) : (
               <>
                 {/* Simple Google G */}
-                <svg viewBox="0 0 533.5 544.3" width="18" height="18" aria-hidden>
+                <svg
+                  viewBox="0 0 533.5 544.3"
+                  width="18"
+                  height="18"
+                  aria-hidden
+                >
                   <path
                     fill="#4285f4"
                     d="M533.5 278.4c0-18.6-1.7-36.5-4.9-53.8H272v101.7h147.2c-6.3 34.2-25 63.1-53.1 82.5v68h85.9c50.3-46.4 81.5-114.8 81.5-198.4z"

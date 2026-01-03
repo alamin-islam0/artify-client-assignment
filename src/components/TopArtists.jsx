@@ -2,7 +2,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Fade } from "react-awesome-reveal";
 
-const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+const API_BASE = (
+  import.meta.env.VITE_API_URL || "http://localhost:3000"
+).replace(/\/$/, "");
 
 function Avatar({ name = "Artist", photoURL, size = 56 }) {
   const [err, setErr] = useState(false);
@@ -53,19 +55,34 @@ export default function TopArtists({ limit = 8 }) {
         if (!res.ok) throw new Error("Failed to load artworks");
         const json = await res.json();
         // normalize array
-        const arts = Array.isArray(json) ? json : Array.isArray(json.data) ? json.data : [];
+        const arts = Array.isArray(json)
+          ? json
+          : Array.isArray(json.data)
+          ? json.data
+          : [];
         if (!alive) return;
 
         // group by userEmail
         const map = new Map();
         for (const a of arts) {
-          const email = String(a.userEmail || a.artistEmail || "").toLowerCase();
+          const email = String(
+            a.userEmail || a.artistEmail || ""
+          ).toLowerCase();
           if (!email) continue;
-          const entry = map.get(email) || { email, name: a.userName || "Unknown", photo: a.artistPhoto || "", artworks: 0, totalLikes: 0 };
+          const entry = map.get(email) || {
+            email,
+            name: a.userName || "Unknown",
+            photo: a.artistPhoto || "",
+            artworks: 0,
+            totalLikes: 0,
+          };
           entry.artworks += 1;
           entry.totalLikes += Number(a.likes || 0);
           // prefer the earliest photo if empty
-          if (!entry.photo && (a.artistPhoto || a.artistPhotoUrl || a.photoURL)) {
+          if (
+            !entry.photo &&
+            (a.artistPhoto || a.artistPhotoUrl || a.photoURL)
+          ) {
             entry.photo = a.artistPhoto || a.artistPhotoUrl || a.photoURL;
           }
           map.set(email, entry);
@@ -77,6 +94,7 @@ export default function TopArtists({ limit = 8 }) {
 
         setArtists(arr);
       } catch (err) {
+        if (err.name === "AbortError") return;
         console.error("TopArtists load error:", err);
         setArtists([]);
       } finally {
@@ -95,8 +113,12 @@ export default function TopArtists({ limit = 8 }) {
       <Fade direction="up" triggerOnce>
         <div className="flex items-end justify-between mb-6">
           <div>
-            <h2 className="text-3xl font-extrabold inter-font">Top Artists of the Week</h2>
-            <p className="mt-1 text-sm opacity-70 montserrat-font">Artists with highest recent engagement (by likes).</p>
+            <h2 className="text-3xl font-extrabold inter-font">
+              Top Artists of the Week
+            </h2>
+            <p className="mt-1 text-sm opacity-70 montserrat-font">
+              Artists with highest recent engagement (by likes).
+            </p>
           </div>
         </div>
       </Fade>
@@ -104,7 +126,10 @@ export default function TopArtists({ limit = 8 }) {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-xl border border-base-300 bg-base-100 p-5 animate-pulse" />
+              <div
+                key={i}
+                className="rounded-xl border border-base-300 bg-base-100 p-5 animate-pulse"
+              />
             ))
           : artists.map((a, idx) => (
               <Fade key={a.email} direction="up" delay={idx * 80} triggerOnce>
@@ -112,12 +137,20 @@ export default function TopArtists({ limit = 8 }) {
                   <div className="flex items-center gap-4">
                     <Avatar name={a.name} photoURL={a.photo} size={64} />
                     <div className="min-w-0">
-                      <div className="font-semibold inter-font text-lg line-clamp-1">{a.name}</div>
-                      <div className="text-xs opacity-70 montserrat-font">{a.artworks} artworks</div>
+                      <div className="font-semibold inter-font text-lg line-clamp-1">
+                        {a.name}
+                      </div>
+                      <div className="text-xs opacity-70 montserrat-font">
+                        {a.artworks} artworks
+                      </div>
                     </div>
                     <div className="ml-auto text-right">
-                      <div className="text-lg font-extrabold inter-font">{(a.totalLikes || 0).toLocaleString()}</div>
-                      <div className="text-xs opacity-70 montserrat-font">Likes</div>
+                      <div className="text-lg font-extrabold inter-font">
+                        {(a.totalLikes || 0).toLocaleString()}
+                      </div>
+                      <div className="text-xs opacity-70 montserrat-font">
+                        Likes
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -89,6 +89,7 @@ const AboutUs = () => {
 
       setStats({ totalArtworks, totalLikes, totalArtists, totalCategories });
     } catch (err) {
+      if (err.name === "AbortError") return;
       console.error("loadStats error:", err);
     } finally {
       setLoading(false);

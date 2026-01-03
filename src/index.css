@@ -13,11 +13,17 @@
     font-family: "Montserrat", sans-serif;
   }
 
-  h1,h2,h3,h4,h5,h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: "Inter", sans-serif;
   }
 
-  button, .btn {
+  button,
+  .btn {
     font-family: "Montserrat", sans-serif;
   }
 
@@ -26,13 +32,23 @@
 }
 
 /* small utility classes */
-.inter-font { font-family: "Inter", sans-serif; }
-.montserrat-font { font-family: "Montserrat", sans-serif; }
+.inter-font {
+  font-family: "Inter", sans-serif;
+}
+.montserrat-font {
+  font-family: "Montserrat", sans-serif;
+}
 
 /* Simple form/button niceties that play well with DaisyUI */
-.input { @apply border rounded-md px-3 py-2 w-full; }
-.select { @apply border rounded-md px-3 py-2 w-full; }
-.textarea { @apply border rounded-md px-3 py-2 w-full; }
+.input {
+  @apply border rounded-md px-3 py-2 w-full;
+}
+.select {
+  @apply border rounded-md px-3 py-2 w-full;
+}
+.textarea {
+  @apply border rounded-md px-3 py-2 w-full;
+}
 
 .btn {
   @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium montserrat-font;
@@ -48,8 +64,12 @@
 }
 
 /* Optional: dark-mode tweaks (Tailwind's 'dark' class toggles these) */
-:root { --app-bg: #ffffff; --app-text: #111827; }
-.dark :root, .dark body {
+:root {
+  --app-bg: #ffffff;
+  --app-text: #111827;
+}
+.dark :root,
+.dark body {
   --app-bg: #0b1220;
   --app-text: #e6eef8;
 }
@@ -59,4 +79,37 @@ body {
   background-color: var(--app-bg);
   color: var(--app-text);
   transition: background-color 220ms ease, color 220ms ease;
+}
+
+/* Custom Scrollbar for Dashboard */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 20px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.8);
+}
+
+/* Animations */
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

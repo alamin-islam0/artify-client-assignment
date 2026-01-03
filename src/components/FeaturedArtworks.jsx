@@ -1,4 +1,3 @@
-// src/components/FeaturedArtworks.jsx
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
@@ -67,7 +66,9 @@ export default function FeaturedArtworks({ items = [], loading = false }) {
 
       <header className="mb-6 flex items-end justify-between">
         <div>
-          <h2 className="text-3xl font-extrabold inter-font">Featured Artworks</h2>
+          <h2 className="text-3xl font-extrabold inter-font">
+            Featured Artworks
+          </h2>
           <p className="mt-1 text-sm opacity-70 montserrat-font">
             Hand-picked, most recent public submissions.
           </p>
@@ -108,7 +109,9 @@ export default function FeaturedArtworks({ items = [], loading = false }) {
                 data-tooltip-content={a?.title}
               >
                 <div className="relative">
-                  {loading && <div className="absolute inset-0 animate-pulse bg-base-200" />}
+                  {loading && (
+                    <div className="absolute inset-0 animate-pulse bg-base-200" />
+                  )}
 
                   <img
                     src={a?.image}
@@ -177,7 +180,8 @@ export default function FeaturedArtworks({ items = [], loading = false }) {
                         <p className="text-xs opacity-60 montserrat-font">
                           {loading ? (
                             <span className="inline-block h-3 w-20 animate-pulse rounded bg-base-200" />
-                          ) : String(a?.visibility).toLowerCase() === "private" ? (
+                          ) : String(a?.visibility).toLowerCase() ===
+                            "private" ? (
                             "Private"
                           ) : (
                             "Public"
@@ -198,7 +202,10 @@ export default function FeaturedArtworks({ items = [], loading = false }) {
                   </div>
 
                   <div className="mt-4 flex items-center justify-between">
-                    <Link to={`/art/${a?._id}`} className="btn btn-primary btn-sm montserrat-font">
+                    <Link
+                      to={`/art/${a?._id}`}
+                      className="btn btn-primary btn-sm montserrat-font"
+                    >
                       View Details
                     </Link>
 
@@ -220,8 +227,12 @@ export default function FeaturedArtworks({ items = [], loading = false }) {
 
       {!loading && sorted.length === 0 && (
         <div className="mt-8 rounded-xl border border-dashed border-base-300 p-10 text-center">
-          <p className="inter-font text-lg font-semibold">No featured items yet</p>
-          <p className="montserrat-font opacity-70">Try adding an artwork or check again later.</p>
+          <p className="inter-font text-lg font-semibold">
+            No featured items yet
+          </p>
+          <p className="montserrat-font opacity-70">
+            Try adding an artwork or check again later.
+          </p>
         </div>
       )}
     </section>

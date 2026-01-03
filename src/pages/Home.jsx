@@ -21,22 +21,20 @@ export default function Home() {
   const [items, setItems] = useState([]);
   const [busy, setBusy] = useState(true);
 
-  const loadFeatured = useCallback(
-    async (signal) => {
-      setBusy(true);
-      try {
-        const r = await getFeatured(signal);
-        setItems(r.data || []);
-      } catch (err) {
-        // keep UX simple: log error and show empty state
-        console.error("getFeatured error:", err);
-        setItems([]);
-      } finally {
-        setBusy(false);
-      }
-    },
-    []
-  );
+  const loadFeatured = useCallback(async (signal) => {
+    setBusy(true);
+    try {
+      const r = await getFeatured(signal);
+      setItems(r.data || []);
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      // keep UX simple: log error and show empty state
+      console.error("getFeatured error:", err);
+      setItems([]);
+    } finally {
+      setBusy(false);
+    }
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
