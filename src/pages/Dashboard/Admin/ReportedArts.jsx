@@ -4,6 +4,8 @@ import useAxiosSecure from "../../../hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import { Trash2, XCircle, Eye, AlertTriangle } from "lucide-react";
 
+import Loading from "../../../components/Loading";
+
 const ReportedArts = () => {
   const axiosSecure = useAxiosSecure();
   const queryClient = useQueryClient();
@@ -68,11 +70,7 @@ const ReportedArts = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-[50vh]">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (

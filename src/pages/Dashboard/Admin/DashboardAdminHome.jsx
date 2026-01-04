@@ -21,6 +21,8 @@ import {
   Line,
 } from "recharts";
 
+import Loading from "../../../components/Loading";
+
 const DashboardAdminHome = () => {
   const axiosSecure = useAxiosSecure();
 
@@ -33,11 +35,7 @@ const DashboardAdminHome = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <span className="loading loading-lg loading-spinner text-primary"></span>
-      </div>
-    );
+    return <Loading />;
   }
 
   // Use backend data for charts or fallback to empty array

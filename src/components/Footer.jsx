@@ -5,7 +5,7 @@ import { Fade, Slide, Zoom } from "react-awesome-reveal";
 export default function Footer() {
   return (
     <Fade triggerOnce>
-      <footer className="bg-base-200 border-t border-base-300 mt-16">
+      <footer className="bg-base-200 border-t border-base-300">
         <div className="max-w-6xl mx-auto px-4 py-14 grid grid-cols-1 md:grid-cols-3 gap-10">
 
           {/* Brand */}

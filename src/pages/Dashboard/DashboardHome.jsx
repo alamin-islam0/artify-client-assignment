@@ -28,6 +28,8 @@ import {
   PieChart as PieChartIcon,
 } from "lucide-react";
 
+import Loading from "../../components/Loading";
+
 /**
  * User Dashboard Home
  * Displays stats, charts, and a table of the user's added artworks.
@@ -57,11 +59,7 @@ const DashboardHome = () => {
   });
 
   if (artsLoading || favLoading) {
-    return (
-      <div className="flex justify-center items-center h-full min-h-[60vh]">
-        <span className="loading loading-lg loading-spinner text-primary"></span>
-      </div>
-    );
+    return <Loading />;
   }
 
   // Calculate Stats

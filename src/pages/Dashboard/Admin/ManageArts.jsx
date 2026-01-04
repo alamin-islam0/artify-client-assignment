@@ -15,6 +15,8 @@ import {
   Search,
 } from "lucide-react";
 
+import Loading from "../../../components/Loading";
+
 const ManageArts = () => {
   const axiosSecure = useAxiosSecure();
   const queryClient = useQueryClient();
@@ -125,11 +127,7 @@ const ManageArts = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-[50vh]">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (

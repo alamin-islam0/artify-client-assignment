@@ -1,7 +1,7 @@
-// src/pages/Favorites.jsx
 import { useEffect, useState } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import Swal from "sweetalert2";
+import Loading from "../components/Loading";
 
 const API_BASE = (
   import.meta.env.VITE_API_URL || "http://localhost:3000"
@@ -239,11 +239,7 @@ export default function Favorites() {
   };
 
   if (authLoading) {
-    return (
-      <section className="max-w-6xl mx-auto px-4 py-8">
-        <p>Checking authentication…</p>
-      </section>
-    );
+    return <Loading />;
   }
 
   if (!user?.email) {
