@@ -1,6 +1,6 @@
 import React from "react";
 import { User, LayoutDashboard, LogOut } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import Switch from "./ThemeSwitcher";
 import useAdmin from "../hooks/useAdmin";
@@ -9,48 +9,53 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const [isAdmin] = useAdmin();
 
+  const getLinkClass = ({ isActive }) =>
+    isActive
+      ? "text-white border-b-2 border-white rounded-none font-medium pb-1"
+      : "text-white pb-1 hover:text-secondary transition-colors duration-200";
+
   const navLinks = (
     <>
       <li>
-        <Link className="text-white" to={"/"}>
+        <NavLink className={getLinkClass} to={"/"}>
           Home
-        </Link>
+        </NavLink>
       </li>
       <li>
-        <Link className="text-white" to={"/explore"}>
+        <NavLink className={getLinkClass} to={"/explore"}>
           Explore
-        </Link>
+        </NavLink>
       </li>
       <li>
-        <Link className="text-white" to={"/about"}>
+        <NavLink className={getLinkClass} to={"/about"}>
           About Us
-        </Link>
+        </NavLink>
       </li>
       <li>
-        <Link className="text-white" to={"/contact"}>
+        <NavLink className={getLinkClass} to={"/contact"}>
           Contact
-        </Link>
+        </NavLink>
       </li>
       {/* 
         The "Add Artwork" and "My Gallery" links are here for quick access when logged in.
         Usually user-specific dashboard links.
        */}
       <li>
-        <Link className="text-white" to={"/dashboard/add-artwork"}>
+        <NavLink className={getLinkClass} to={"/dashboard/add-artwork"}>
           Add Artwork
-        </Link>
+        </NavLink>
       </li>
       <li>
-        <Link className="text-white" to={"/dashboard/gallery"}>
+        <NavLink className={getLinkClass} to={"/dashboard/gallery"}>
           My Gallery
-        </Link>
+        </NavLink>
       </li>
       {user && (
         <>
           <li>
-            <Link className="text-white" to={"/dashboard/favorites"}>
+            <NavLink className={getLinkClass} to={"/dashboard/favorites"}>
               My Favorites
-            </Link>
+            </NavLink>
           </li>
         </>
       )}

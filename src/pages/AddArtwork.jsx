@@ -227,15 +227,6 @@ export default function AddArtwork() {
                     onChange={handleImageChange}
                     className="file-input file-input-bordered file-input-primary w-full mb-2"
                   />
-                  <input
-                    type="url"
-                    className="input input-bordered input-sm w-full focus:input-primary transition-all"
-                    placeholder="Or paste image URL"
-                    value={form.image}
-                    onChange={(e) =>
-                      setForm({ ...form, image: e.target.value })
-                    }
-                  />
                 </div>
               </div>
 

@@ -244,7 +244,7 @@ const DashboardLayout = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={toggleSidebar}
-              className="btn btn-ghost btn-circle btn-sm lg:hidden"
+              className=" btn-ghost btn-circle btn-sm lg:hidden text-primary"
             >
               <Menu size={24} />
             </button>

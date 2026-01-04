@@ -138,40 +138,95 @@ export default function Explore() {
   const axiosPublic = useAxiosPublic();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({ search: "", category: "" });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
-  const {
-    data: list = [],
-    isLoading,
-    isPlaceholderData,
-  } = useQuery({
-    queryKey: ["explore-arts", filters.search, filters.category],
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: searchTerm }));
+      setCurrentPage(1);
+    }, 400);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
+  const { data, isLoading, isPlaceholderData } = useQuery({
+    queryKey: ["explore-arts", filters.search, filters.category, currentPage],
     queryFn: async () => {
       const params = {
-        page: 1,
-        limit: 12,
+        page: currentPage,
+        limit: itemsPerPage,
         search: filters.search,
         category: filters.category,
       };
       const res = await axiosPublic.get("/arts", { params });
-      // Adapt response structure if needed, keeping similar resilience
-      const data = res.data;
-      if (Array.isArray(data)) return data;
-      return data.data || data || [];
+      return res.data;
     },
     placeholderData: keepPreviousData,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
-  const handleSearch = () => {
-    setFilters((prev) => ({ ...prev, search: searchTerm }));
-  };
+  // Extract list and total count
+  let list = [];
+  let totalCount = 0;
+
+  if (data) {
+    if (Array.isArray(data)) {
+      list = data;
+      // If the API returns just an array, we try to use its length,
+      // but proper pagination requires a total count field from the backend.
+      // We will fallback to list.length if no total is provided,
+      // which effectively disables pagination if the backend doesn't support it well.
+      totalCount = data.length;
+    } else {
+      list = data.data || [];
+      totalCount = data.total || data.count || data.totalDocs || 0;
+    }
+  }
+
+  const totalPages = Math.ceil(totalCount / itemsPerPage) || 1;
 
   const handleCategoryChange = (e) => {
     const newCat = e.target.value;
     setFilters((prev) => ({ ...prev, category: newCat }));
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const loadingState = isLoading;
+
+  // Pagination Helper
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 3; i++) pages.push(i);
+        pages.push("...");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push("...");
+        for (let i = totalPages - 2; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push("...");
+        pages.push(currentPage);
+        pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+    return pages;
+  };
 
   return (
     <section className="max-w-6xl mx-auto px-4 py-10 lg:mt-24 mt-16">
@@ -188,9 +243,8 @@ export default function Explore() {
         <input
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search title or artist"
+          placeholder="Search title or artist..."
           className="input input-bordered w-full montserrat-font"
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
         />
 
         <select
@@ -205,13 +259,6 @@ export default function Explore() {
           <option>Photography</option>
           <option>Sketch</option>
         </select>
-
-        <button
-          onClick={handleSearch}
-          className="btn btn-primary montserrat-font w-full sm:w-auto"
-        >
-          Search
-        </button>
       </div>
 
       {/* GRID */}
@@ -230,6 +277,41 @@ export default function Explore() {
           <p className="opacity-70 montserrat-font">
             Try another search or category.
           </p>
+        </div>
+      )}
+
+      {/* PAGINATION */}
+      {!loadingState && totalPages > 1 && (
+        <div className="flex justify-center mt-12">
+          <div className="join">
+            <button
+              className="join-item btn"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              «
+            </button>
+
+            {getPageNumbers().map((p, idx) => (
+              <button
+                key={idx}
+                className={`join-item btn ${
+                  p === currentPage ? "btn-active btn-primary" : ""
+                } ${p === "..." ? "btn-disabled" : ""}`}
+                onClick={() => typeof p === "number" && handlePageChange(p)}
+              >
+                {p}
+              </button>
+            ))}
+
+            <button
+              className="join-item btn"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              »
+            </button>
+          </div>
         </div>
       )}
     </section>
