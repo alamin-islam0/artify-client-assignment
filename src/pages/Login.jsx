@@ -12,12 +12,30 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  const [passwordError, setPasswordError] = useState("");
+
   const nav = useNavigate();
   const loc = useLocation();
   const back = loc.state?.from?.pathname || "/";
 
   const submit = async (e) => {
     e.preventDefault();
+    setPasswordError("");
+
+    // Password Validation
+    if (password.length < 6) {
+      setPasswordError("Length must be at least 6 characters");
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setPasswordError("Must have an Uppercase letter in the password");
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setPasswordError("Must have a Lowercase letter in the password");
+      return;
+    }
+
     try {
       setBusy(true);
       const res = await emailLogin(email, password);
@@ -133,9 +151,14 @@ export default function Login() {
               <input
                 type={showPass ? "text" : "password"}
                 placeholder="Enter your password"
-                className="input input-bordered w-full pl-10 pr-10"
+                className={`input input-bordered w-full pl-10 pr-10 ${
+                  passwordError ? "input-error" : ""
+                }`}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (passwordError) setPasswordError("");
+                }}
                 disabled={busy}
                 autoComplete="current-password"
                 required
@@ -149,6 +172,9 @@ export default function Login() {
                 {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            {passwordError && (
+              <span className="text-error text-xs">{passwordError}</span>
+            )}
 
             {/* Row */}
             <div className="mt-1 flex items-center justify-between text-sm">

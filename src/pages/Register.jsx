@@ -40,11 +40,18 @@ export default function Register() {
     e.preventDefault();
     setPasswordError("");
 
-    // uppercase + lowercase + 6+ chars
-    if (!/(?=.*[a-z])(?=.*[A-Z]).{6,}/.test(form.password)) {
-      setPasswordError(
-        "Password must contain uppercase, lowercase and be at least 6 characters."
-      );
+    // Password Validation
+    const password = form.password;
+    if (password.length < 6) {
+      setPasswordError("Length must be at least 6 characters");
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setPasswordError("Must have an Uppercase letter in the password");
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setPasswordError("Must have a Lowercase letter in the password");
       return;
     }
 

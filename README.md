@@ -1,75 +1,112 @@
-# Artify — React + Vite
+# Artify - Redefining Digital Artistry 🎨
 
-Live demo: https://artify-store.netlify.app/
+**Live Demo:** [https://artify-client.vercel.app/](https://artify-client.vercel.app/)
 
-Artify is a responsive React app (Vite) for browsing, adding, and favoriting artworks. This README highlights the most important features and quick steps to run the project locally.
+Artify is a modern, responsive digital art gallery platform where creativity meets community. Built with **React** and **Vite**, it empowers artists to showcase their work and collectors to discover unique masterpieces from around the globe.
 
-Important features
+---
 
-- Live demo deployed on Netlify (link above)
-- Responsive gallery with artwork cards and details view
-- Add Artwork page (create new artwork entries)
-- Favorites: save artworks you like
-- Authentication (Login / Register) using Firebase (see `src/firebase/config.js`)
-- Private routes for protected pages (`routes/PrivateRoute.jsx`)
-- Theme switcher (light/dark) and UI components: slider, featured artworks
+## 🌟 Key Features
 
-Project layout (key files)
+### 🔐 Authentication & Security
 
-- `src/pages/` — main pages: `Home`, `Explore`, `Gallery`, `AddArtwork`, `Details`, `Favorites`, `Login`, `Register`
-- `src/components/` — reusable UI parts: `NavBar`, `Slider`, `FeaturedArtworks`, `ThemeSwitcher`, `Footer`
-- `src/providers/AuthProvider.jsx` — authentication context
-- `src/firebase/config.js` — Firebase settings (ensure your own .env keys for local dev)
-- `routes/PrivateRoute.jsx` — protects routes that need auth
+- **Secure Login & Registration**: User authentication powered by **Firebase**.
+- **Social Login**: One-click sign-in with **Google**.
+- **Password Strength Validation**: Robust validation requiring uppercase, lowercase, and minimum length.
+- **Eye Toggle**: Show/hide password functionality for better UX.
 
-Quick start (local)
+### 🖼️ Artist & User Dashboard
 
-1. Install dependencies
+- **Profile Management**: Update display name and upload profile pictures directly to **ImgBB**.
+- **Add Artwork**: Seamlessly upload artwork with image hosting, details, and categorization.
+- **My Artworks**: Manage your personal gallery (Edit/Delete artworks).
+- **Favorites**: Save and organize artworks you love.
 
-```bash
-npm install
-```
+### 🎨 Gallery & Exploration
 
-2. Run dev server
+- **Dynamic Gallery**: Browse a vast collection of digital art, paintings, sketches, and more.
+- **Advanced Search & Filtering**: Find art by title, artist, or specific categories (Painting, Digital, Scripture, etc.).
+- **Artwork Details**: View high-quality images, artist info, price, dimensions, and more.
+- **Responsive Slider**: Engaging homepage slider featuring curated highlights.
 
-```bash
-npm run dev
-```
+### 🛡️ Admin Dashboard (Role-Based Access)
 
-3. Open the app in your browser (usually http://localhost:5173)
+- **Manage Users**: Admins can promote/demote users and manage user roles.
+- **Content Moderation**: Review reported artworks and ensure community guidelines are followed.
+- **Platform Analytics**: Visual charts (Recharts) showing user growth, artwork uploads, and more.
 
-Build for production
+### 🌗 Modern UI/UX
+
+- **Dark/Light Mode**: Fully thematic support for a personalized viewing experience.
+- **Responsive Design**: Pixel-perfect layout optimized for mobile, tablet, and desktop.
+- **Interactive Elements**: Lottie animations, sweet alerts (Swal2), and seamless transitions.
+- **Global Loading Spinner**: Customized loading state for a polished experience.
+
+---
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React, Vite, Tailwind CSS, DaisyUI
+- **State Management**: TanStack Query (React Query), Context API
+- **Routing**: React Router DOM (with Private & Admin Routes)
+- **Authentication**: Firebase Auth
+- **Backend Communication**: Axios (with Interceptors)
+- **Image Hosting**: ImgBB API
+- **Data Visualization**: Recharts
+- **Icons**: Lucide React, React Icons
+
+---
+
+## 🚀 Quick Start (Local Development)
+
+1.  **Clone the repository**
+
+    ```bash
+    git clone https://github.com/alamin-islam0/artify-client.git
+    cd artify-client
+    ```
+
+2.  **Install dependencies**
+
+    ```bash
+    npm install
+    ```
+
+3.  **Configure Environment Variables**
+    Create a `.env.local` file in the root directory and add your Firebase and API keys:
+
+    ```env
+    VITE_API_URL=http://localhost:3000
+    VITE_IMGBB_API_KEY=your_imgbb_key
+    # Add your Firebase config keys here
+    ```
+
+4.  **Run the development server**
+
+    ```bash
+    npm run dev
+    ```
+
+5.  **Open in Browser**
+    Visit [http://localhost:5173](http://localhost:5173) to view the app.
+
+---
+
+## 📦 Build for Production
+
+To create an optimized production build:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-Notes and assumptions
+---
 
-- The project uses Firebase for backend features (auth/read/write). For local dev, set your Firebase config in environment variables or `src/firebase/config.js` as appropriate.
-- The live demo is deployed at the Netlify URL above. If you update environment-dependent features, redeploy to Netlify for the changes to appear.
+## 🤝 Contributing
 
-Contributing / next steps
+We welcome contributions! Please feel free to shout out, suggest improvements, or submit a pull request.
 
-- Add more tests for pages and components.
-- Add CI (lint, test, build) and a deploy pipeline if needed.
+---
 
-Thanks for checking out Artify — try the live demo and run locally to explore the app!
-
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+_Crafted with ❤️ by the Artify Team._
