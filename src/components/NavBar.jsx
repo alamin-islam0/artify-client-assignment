@@ -3,9 +3,11 @@ import { User, LayoutDashboard, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import Switch from "./ThemeSwitcher";
+import useAdmin from "../hooks/useAdmin";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const [isAdmin] = useAdmin();
 
   const navLinks = (
     <>
@@ -29,6 +31,10 @@ const Navbar = () => {
           Contact
         </Link>
       </li>
+      {/* 
+        The "Add Artwork" and "My Gallery" links are here for quick access when logged in.
+        Usually user-specific dashboard links.
+       */}
       <li>
         <Link className="text-white" to={"/dashboard/add-artwork"}>
           Add Artwork
@@ -51,8 +57,8 @@ const Navbar = () => {
     </>
   );
   return (
-    <div className="mr-2 lg:mr-0 ml-2 lg:ml-0 p-2">
-      <div className="navbar sticky top-2 lg:top-4 lg:mt-4 mt-4 z-50 mx-auto bg-primary/90 backdrop-blur-md rounded-full px-4 lg:px-6 max-w-6xl shadow-lg border border-white/10 transition-all duration-300">
+    <div className="fixed top-2 w-full z-50 px-2 lg:px-0">
+      <div className="navbar mx-auto bg-primary/90 backdrop-blur-md rounded-full px-4 lg:px-6 max-w-6xl shadow-lg border border-white/10 transition-all duration-300 overflow-visible">
         <div className="navbar-start">
           <div className="dropdown">
             <div
@@ -134,7 +140,10 @@ const Navbar = () => {
                     </li>
 
                     <li>
-                      <Link to="/dashboard" className="flex items-center gap-2">
+                      <Link
+                        to={isAdmin ? "/dashboard/admin" : "/dashboard"}
+                        className="flex items-center gap-2"
+                      >
                         <LayoutDashboard size={18} />
                         Dashboard
                       </Link>
@@ -187,7 +196,9 @@ const Navbar = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link to="/dashboard">Dashboard</Link>
+                    <Link to={isAdmin ? "/dashboard/admin" : "/dashboard"}>
+                      Dashboard
+                    </Link>
                   </li>
                   <li>
                     <Link to="/dashboard/gallery">My Gallery</Link>

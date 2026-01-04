@@ -85,7 +85,7 @@ export default function Contact() {
   ];
 
   return (
-    <div className="min-h-screen bg-base-100 overflow-x-hidden mt-4">
+    <div className="min-h-screen bg-base-100 overflow-x-hidden">
       {/* 1. Immersive Hero Section with Parallax-like feel */}
       <section className="relative h-[60vh] lg:h-[70vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 opacity-90 z-10" />

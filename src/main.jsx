@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import AuthProvider from "./providers/AuthProvider.jsx";
+import { ThemeProvider } from "./providers/ThemeProvider.jsx";
 import ErrorPage from "./pages/ErrorPage.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
@@ -24,7 +25,6 @@ import DashboardAdminHome from "./pages/Dashboard/Admin/DashboardAdminHome.jsx";
 import ManageUsers from "./pages/Dashboard/Admin/ManageUsers.jsx";
 import ManageArts from "./pages/Dashboard/Admin/ManageArts.jsx";
 import ReportedArts from "./pages/Dashboard/Admin/ReportedArts.jsx";
-import AdminProfile from "./pages/Dashboard/Admin/AdminProfile.jsx";
 
 const router = createBrowserRouter([
   {
@@ -116,7 +116,7 @@ const router = createBrowserRouter([
           },
           {
             path: "profile",
-            element: <AdminProfile />,
+            element: <Profile />,
           },
         ],
       },
@@ -135,9 +135,11 @@ const queryClient = new QueryClient();
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </ThemeProvider>
     </AuthProvider>
   </StrictMode>
 );

@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../providers/AuthProvider";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
 import {
   BarChart,
   Bar,
@@ -12,121 +14,111 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
 } from "recharts";
 import {
-  DollarSign,
   Image as ImageIcon,
   Heart,
   TrendingUp,
-  Loader2,
   Calendar,
+  Loader2,
+  PlusCircle,
+  ExternalLink,
+  BarChart3,
+  PieChart as PieChartIcon,
 } from "lucide-react";
 
 /**
- * MOCKED DATA
- * In a real scenario, this would come from an API call like /api/dashboard/stats
+ * User Dashboard Home
+ * Displays stats, charts, and a table of the user's added artworks.
  */
-const API_BASE = (
-  import.meta.env.VITE_API_URL || "http://localhost:3000"
-).replace(/\/$/, "");
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
-
 const DashboardHome = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    totalArtworks: 0,
-    totalFavorites: 0,
-    recentArtworks: [],
-    loading: true,
+  const axiosSecure = useAxiosSecure();
+
+  // Fetch User's Artworks
+  const { data: artworks = [], isLoading: artsLoading } = useQuery({
+    queryKey: ["my-arts", user?.email],
+    enabled: !!user?.email,
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/my-arts?email=${user.email}`);
+      return res.data;
+    },
   });
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        if (!user?.email) return;
+  // Fetch Favorites Count
+  const { data: favorites = [], isLoading: favLoading } = useQuery({
+    queryKey: ["my-favorites", user?.email],
+    enabled: !!user?.email,
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/favorites?email=${user.email}`);
+      return res.data;
+    },
+  });
 
-        // Fetch My Artworks using the endpoint seen in Gallery.jsx
-        // Try the most likely one first
-        let artworks = [];
-        try {
-          const artRes = await fetch(
-            `${API_BASE}/my-arts?email=${encodeURIComponent(user.email)}`
-          );
-          if (artRes.ok) {
-            const json = await artRes.json();
-            artworks = Array.isArray(json) ? json : [];
-          } else {
-            // Fallback to /arts?artistEmail query
-            const artRes2 = await fetch(
-              `${API_BASE}/arts?artistEmail=${encodeURIComponent(user.email)}`
-            );
-            if (artRes2.ok) {
-              const json = await artRes2.json();
-              artworks = Array.isArray(json) ? json : json.data || [];
-            }
-          }
-        } catch (e) {
-          console.warn("Error fetching artworks:", e);
-        }
-
-        // Fetch Favorites - assuming standard favorites endpoint often matches pattern
-        // Example: /favorites/:email
-        let favorites = [];
-        try {
-          const favRes = await fetch(
-            `${API_BASE}/favorites?email=${encodeURIComponent(user.email)}`
-          );
-          if (favRes.ok) {
-            favorites = await favRes.json();
-          }
-        } catch (e) {
-          console.warn("Error fetching favorites:", e);
-        }
-
-        setStats({
-          totalArtworks: artworks.length || 0,
-          totalFavorites: favorites.length || 0,
-          recentArtworks: artworks.slice(0, 5) || [],
-          loading: false,
-        });
-      } catch (error) {
-        console.error("Failed to fetch dashboard data", error);
-        setStats((prev) => ({ ...prev, loading: false }));
-      }
-    };
-
-    fetchDashboardData();
-  }, [user]);
-
-  if (stats.loading) {
+  if (artsLoading || favLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      <div className="flex justify-center items-center h-full min-h-[60vh]">
+        <span className="loading loading-lg loading-spinner text-primary"></span>
       </div>
     );
   }
 
-  // Derived data for charts
-  const ratingData = stats.recentArtworks.map((art) => ({
-    name: art.title?.substring(0, 10) + "...",
-    rating: parseFloat(art.rating || 0),
-    price: parseFloat(art.price || 0),
+  // Calculate Stats
+  const totalArtworks = artworks.length;
+  const totalFavorites = favorites.length;
+
+  // Calculate New Today
+  const today = new Date().toDateString();
+  const totalNewToday = artworks.filter((art) => {
+    const artDate = new Date(
+      art.createdAt || art.date || art.processing_time || 0
+    ).toDateString();
+    return artDate === today;
+  }).length;
+
+  const recentArtworks = [...artworks]
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.date || a.processing_time || 0);
+      const dateB = new Date(b.createdAt || b.date || b.processing_time || 0);
+      return dateB - dateA;
+    })
+    .slice(0, 5);
+
+  // Prepare Chart Data
+  // 1. Bar Chart: Arts by Category
+  const categoryCount = artworks.reduce((acc, curr) => {
+    const cat =
+      curr.subcategory_Name || curr.subcategory || curr.category || "Other";
+    acc[cat] = (acc[cat] || 0) + 1;
+    return acc;
+  }, {});
+
+  const barChartData = Object.keys(categoryCount).map((key) => ({
+    name: key,
+    count: categoryCount[key],
   }));
 
-  // Example distribution data (e.g., By Customization)
-  const customizationData = [
-    {
-      name: "Customizable",
-      value: stats.recentArtworks.filter((a) => a.customization === "Yes")
-        .length,
+  // 2. Pie Chart: Price Distribution
+  const priceDistribution = artworks.reduce(
+    (acc, curr) => {
+      const price = parseFloat(curr.price || 0);
+      if (price < 50) acc["Budget (< $50)"]++;
+      else if (price >= 50 && price <= 200) acc["Mid-Range ($50 - $200)"]++;
+      else acc["Premium (> $200)"]++;
+      return acc;
     },
-    {
-      name: "Non-Custom",
-      value: stats.recentArtworks.filter((a) => a.customization !== "Yes")
-        .length,
-    },
-  ];
+    { "Budget (< $50)": 0, "Mid-Range ($50 - $200)": 0, "Premium (> $200)": 0 }
+  );
+
+  const pieChartData = Object.keys(priceDistribution)
+    .filter((key) => priceDistribution[key] > 0)
+    .map((key) => ({
+      name: key,
+      value: priceDistribution[key],
+    }));
+
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
   return (
     <div className="space-y-8 animate-fade-in-up">
@@ -140,7 +132,7 @@ const DashboardHome = () => {
             </span>
           </h1>
           <p className="text-base-content/60 mt-1">
-            Here's what's happening with your art collection today.
+            Manage your personal gallery and check your impact.
           </p>
         </div>
         <div className="bg-base-100 px-4 py-2 rounded-lg shadow-sm font-medium flex items-center gap-2 border border-base-300">
@@ -154,64 +146,55 @@ const DashboardHome = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="stat bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group">
+        <div className="stat bg-base-100 shadow-xl rounded-2xl border border-base-200">
           <div className="stat-figure text-primary">
-            <div className="p-3 bg-white/50 rounded-full group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
+            <div className="p-3 bg-primary/10 rounded-xl">
               <ImageIcon size={32} />
             </div>
           </div>
-          <div className="stat-title font-medium text-primary-content/70">
-            Total Artworks
-          </div>
-          <div className="stat-value text-primary text-4xl mt-1">
-            {stats.totalArtworks}
-          </div>
-          <div className="stat-desc font-medium">Items in your gallery</div>
+          <div className="stat-title">My Artworks</div>
+          <div className="stat-value text-primary">{totalArtworks}</div>
+          <div className="stat-desc">items added to gallery</div>
         </div>
 
-        <div className="stat bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group">
+        <div className="stat bg-base-100 shadow-xl rounded-2xl border border-base-200">
           <div className="stat-figure text-secondary">
-            <div className="p-3 bg-white/50 rounded-full group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
+            <div className="p-3 bg-secondary/10 rounded-xl">
               <Heart size={32} />
             </div>
           </div>
-          <div className="stat-title font-medium text-secondary-content/70">
-            Total Favorites
-          </div>
-          <div className="stat-value text-secondary text-4xl mt-1">
-            {stats.totalFavorites}
-          </div>
-          <div className="stat-desc font-medium">Items you loved</div>
+          <div className="stat-title">My Favorites</div>
+          <div className="stat-value text-secondary">{totalFavorites}</div>
+          <div className="stat-desc">saved for inspiration</div>
         </div>
 
-        <div className="stat bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group">
+        <div className="stat bg-base-100 shadow-xl rounded-2xl border border-base-200">
           <div className="stat-figure text-accent">
-            <div className="p-3 bg-white/50 rounded-full group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-              <TrendingUp size={32} />
+            <div className="p-3 bg-accent/10 rounded-xl">
+              <PlusCircle size={32} />
             </div>
           </div>
-          <div className="stat-title font-medium text-accent-content/70">
-            Engagement
-          </div>
-          <div className="stat-value text-accent text-4xl mt-1">High</div>
-          <div className="stat-desc font-medium">Based on activity</div>
+          <div className="stat-title">New Today</div>
+          <div className="stat-value text-accent">{totalNewToday}</div>
+          <div className="stat-desc">arts added today</div>
         </div>
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Bar Chart */}
-        <div className="card bg-base-100 shadow-xl border border-base-200">
-          <div className="card-body p-6">
-            <h3 className="card-title text-lg mb-4">
-              Artwork Pricing Overview
-            </h3>
-            <div className="h-64 w-full">
-              {ratingData.length > 0 ? (
+      {artworks.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Bar Chart: Arts by Category */}
+          <div className="card bg-base-100 shadow-xl border border-base-200">
+            <div className="card-body p-6">
+              <h3 className="card-title text-lg mb-4 flex items-center gap-2">
+                <BarChart3 size={20} className="text-primary" />
+                Artworks by Category
+              </h3>
+              <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={ratingData}>
+                  <BarChart data={barChartData}>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       vertical={false}
@@ -222,8 +205,15 @@ const DashboardHome = () => {
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
+                      tick={{ fill: "#6B7280" }}
+                      dy={10}
                     />
-                    <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: "#6B7280" }}
+                    />
                     <Tooltip
                       cursor={{ fill: "rgba(0,0,0,0.05)" }}
                       contentStyle={{
@@ -233,104 +223,98 @@ const DashboardHome = () => {
                       }}
                     />
                     <Bar
-                      dataKey="price"
-                      fill="oklch(var(--p))"
+                      dataKey="count"
+                      fill="#570DF8" // Primary color
                       radius={[4, 4, 0, 0]}
                       barSize={40}
                     />
                   </BarChart>
                 </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-base-content/40">
-                  No data to display
-                </div>
-              )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Pie Chart */}
-        <div className="card bg-base-100 shadow-xl border border-base-200">
-          <div className="card-body p-6">
-            <h3 className="card-title text-lg mb-4">
-              Collection Customization
-            </h3>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={customizationData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {customizationData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: "12px",
-                      border: "none",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex justify-center gap-4 text-sm">
-                {customizationData.map((entry, index) => (
-                  <div key={entry.name} className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                    ></div>
-                    <span>{entry.name}</span>
-                  </div>
-                ))}
+          {/* Pie Chart: Price Distribution */}
+          <div className="card bg-base-100 shadow-xl border border-base-200">
+            <div className="card-body p-6">
+              <h3 className="card-title text-lg mb-4 flex items-center gap-2">
+                <PieChartIcon size={20} className="text-secondary" />
+                Price Distribution
+              </h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieChartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {pieChartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "12px",
+                        border: "none",
+                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                      }}
+                    />
+                    <Legend verticalAlign="bottom" height={36} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Recent Artworks Table */}
+      {/* Main Content Area: Table replacing Charts */}
       <div className="card bg-base-100 shadow-xl border border-base-200 overflow-hidden">
         <div className="card-body p-0">
-          <div className="p-6 border-b border-base-200 flex justify-between items-center">
-            <h3 className="font-bold text-lg">Recent Uploads</h3>
+          <div className="p-6 border-b border-base-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <ImageIcon size={20} className="text-primary" />
+                My Recent Artworks
+              </h3>
+              <p className="text-sm text-base-content/60">
+                A list of your recently added contributions to the community.
+              </p>
+            </div>
             <Link
-              to="/dashboard/gallery"
-              className="btn btn-sm btn-ghost text-primary"
+              to="/dashboard/add-artwork"
+              className="btn btn-primary btn-sm gap-2"
             >
-              View All
+              <PlusCircle size={16} />
+              Add New Art
             </Link>
           </div>
+
           <div className="overflow-x-auto">
-            <table className="table table-lg">
+            <table className="table table-lg w-full">
               {/* head */}
-              <thead className="bg-base-200/50">
+              <thead className="bg-base-200/50 text-base-content/70">
                 <tr>
-                  <th className="font-semibold text-base-content/70">
-                    Artwork
-                  </th>
-                  <th className="font-semibold text-base-content/70">
-                    Category
-                  </th>
-                  <th className="font-semibold text-base-content/70">Price</th>
-                  <th className="font-semibold text-base-content/70">Rating</th>
-                  <th className="font-semibold text-base-content/70">Status</th>
+                  <th>Artwork Details</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Rating</th>
+                  <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {stats.recentArtworks.length > 0 ? (
-                  stats.recentArtworks.map((art) => (
+                {recentArtworks.length > 0 ? (
+                  recentArtworks.map((art) => (
                     <tr
                       key={art._id}
                       className="hover:bg-base-200/30 transition-colors"
@@ -338,54 +322,122 @@ const DashboardHome = () => {
                       <td>
                         <div className="flex items-center gap-4">
                           <div className="avatar">
-                            <div className="mask mask-squircle w-12 h-12">
+                            <div className="mask mask-squircle w-14 h-14 bg-base-200">
                               <img
-                                src={art.photo}
+                                src={
+                                  art.photo ||
+                                  art.imageUrl ||
+                                  art.image ||
+                                  "https://placehold.co/100x100?text=No+Image"
+                                }
                                 alt={art.title}
                                 className="object-cover"
+                                onError={(e) =>
+                                  (e.target.src =
+                                    "https://placehold.co/100x100?text=No+Image")
+                                }
                               />
                             </div>
                           </div>
                           <div>
-                            <div className="font-bold">{art.title}</div>
-                            <div className="text-sm opacity-50">
-                              {new Date().toLocaleDateString()}
+                            <div className="font-bold truncate max-w-[150px] sm:max-w-xs">
+                              {art.item_name || art.title}
+                            </div>
+                            <div className="text-xs opacity-50 flex items-center gap-1">
+                              <Calendar size={12} />
+                              {art.processing_time ||
+                              art.createdAt ||
+                              art.date ? (
+                                <span>
+                                  {/* customized date or just display value */}
+                                  {art.processing_time ||
+                                    new Date(
+                                      art.createdAt || art.date
+                                    ).toLocaleDateString()}
+                                </span>
+                              ) : (
+                                <span>Recently added</span>
+                              )}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td>
-                        <div className="badge badge-ghost badge-sm">
-                          {art.subcategory}
-                        </div>
-                      </td>
-                      <td className="font-medium text-success">${art.price}</td>
-                      <td>
-                        <div className="flex items-center gap-1 text-warning">
-                          <span>★</span>
-                          <span>{art.rating}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-success badge-outline badge-sm">
-                          Active
+                        <span className="badge badge-ghost badge-sm">
+                          {art.subcategory_Name ||
+                            art.subcategory ||
+                            art.category ||
+                            "N/A"}
                         </span>
+                      </td>
+                      <td className="font-medium font-mono text-success">
+                        ${art.price || 0}
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1 text-warning font-medium">
+                          <span>★</span>
+                          <span>{art.rating || "0.0"}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="badge badge-success badge-outline gap-1 pl-1 pr-2">
+                          <div className="w-2 h-2 rounded-full bg-success"></div>
+                          {art.customization === "Yes"
+                            ? "Customizable"
+                            : "Standard"}
+                        </div>
+                      </td>
+                      <td>
+                        <Link
+                          to={`/art/${art._id}`}
+                          className=" btn-square btn-ghost btn-sm text-base-content/60 hover:text-primary tooltip"
+                        >
+                          <ExternalLink size={18} />
+                        </Link>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan="5"
-                      className="text-center py-8 text-base-content/50"
-                    >
-                      No recent artworks found.
+                    <td colSpan="6">
+                      <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <div className="w-16 h-16 bg-base-200 rounded-full flex items-center justify-center mb-4">
+                          <ImageIcon
+                            size={32}
+                            className="text-base-content/20"
+                          />
+                        </div>
+                        <h3 className="text-lg font-bold text-base-content/70">
+                          No Artworks Found
+                        </h3>
+                        <p className="max-w-xs text-base-content/50 mt-1 mb-6">
+                          You haven't uploaded any masterpieces yet. Start
+                          sharing your creativity with the world!
+                        </p>
+                        <Link
+                          to="/dashboard/add-artwork"
+                          className="btn btn-primary"
+                        >
+                          Upload Your First Art
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+
+          {recentArtworks.length > 0 && (
+            <div className="p-4 border-t border-base-200 bg-base-100 text-center">
+              <Link
+                to="/dashboard/gallery"
+                className="btn btn-ghost btn-sm text-primary"
+              >
+                View All My Artworks
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

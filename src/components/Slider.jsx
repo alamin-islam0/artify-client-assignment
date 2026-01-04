@@ -68,7 +68,7 @@ export default function Slider() {
         loop={true}
         autoplay={{ delay: 3000, disableOnInteraction: false }}
         modules={[Pagination, Autoplay]}
-        className="h-[520px]"
+        className="h-[620px]"
       >
         {slides.map((a) => {
           const bg =

@@ -54,7 +54,7 @@ export default function Home() {
   }, [loadFeatured]);
 
   return (
-    <div className="mt-4">
+    <div className="">
       <Slider />
       <Categories />
       <AboutSection />
