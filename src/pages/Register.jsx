@@ -2,8 +2,18 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import Swal from "sweetalert2";
-import { Mail, Lock, User, Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff,
+  Loader2,
+  UserPlus,
+  Image as ImageIcon,
+} from "lucide-react";
 import axios from "axios";
+import { uploadImageCurrent } from "../utils/imageUpload";
 
 export default function Register() {
   const { register, googleLogin } = useAuth();
@@ -11,35 +21,51 @@ export default function Register() {
 
   const [busy, setBusy] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
   const [form, set] = useState({
     name: "",
     email: "",
     password: "",
-    photoURL: "",
   });
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+    }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
+    setPasswordError("");
 
     // uppercase + lowercase + 6+ chars
     if (!/(?=.*[a-z])(?=.*[A-Z]).{6,}/.test(form.password)) {
-      Swal.fire({
-        title: "Weak Password",
-        text: "Password must contain uppercase, lowercase and be at least 6 characters.",
-        icon: "warning",
-      });
+      setPasswordError(
+        "Password must contain uppercase, lowercase and be at least 6 characters."
+      );
       return;
     }
 
     try {
       setBusy(true);
-      await register(form);
+
+      let photoURL = "";
+      if (selectedImage) {
+        photoURL = await uploadImageCurrent(selectedImage);
+        if (!photoURL) {
+          throw new Error("Image upload failed");
+        }
+      }
+
+      await register({ ...form, photoURL });
 
       // Save user to backend
       const userInfo = {
         name: form.name,
         email: form.email,
-        photoURL: form.photoURL || "",
+        photoURL: photoURL || "",
       };
       await axios.post(
         `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/users`,
@@ -55,6 +81,7 @@ export default function Register() {
       });
       nav("/", { replace: true });
     } catch (err) {
+      console.error(err);
       Swal.fire({
         title: "Signup Failed",
         text: err?.message || "Something went wrong",
@@ -100,7 +127,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-[calc(100dvh-120px)] grid place-items-center px-4 py-8 bg-base-200">
+    <div className="min-h-[calc(100dvh-120px)] pt-32 grid place-items-center px-4 py-16 bg-base-200">
       {/* Card (same as Login) */}
       <div
         className="
@@ -162,9 +189,14 @@ export default function Register() {
               <input
                 type={showPass ? "text" : "password"}
                 placeholder="••••••••"
-                className="input input-bordered w-full pl-10 pr-10"
+                className={`input input-bordered w-full pl-10 pr-10 ${
+                  passwordError ? "input-error" : ""
+                }`}
                 value={form.password}
-                onChange={(e) => set({ ...form, password: e.target.value })}
+                onChange={(e) => {
+                  set({ ...form, password: e.target.value });
+                  if (passwordError) setPasswordError("");
+                }}
                 disabled={busy}
                 autoComplete="new-password"
                 required
@@ -178,19 +210,26 @@ export default function Register() {
                 {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            {passwordError && (
+              <span className="text-error text-xs">{passwordError}</span>
+            )}
 
-            {/* Photo URL */}
+            {/* Photo Upload */}
             <label className="block text-sm font-semibold mt-2">
-              Photo URL (optional)
+              Profile Photo (Optional)
             </label>
-            <input
-              type="url"
-              placeholder="https://example.com/me.jpg"
-              className="input input-bordered w-full"
-              value={form.photoURL}
-              onChange={(e) => set({ ...form, photoURL: e.target.value })}
-              disabled={busy}
-            />
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 opacity-70">
+                <ImageIcon size={18} />
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="file-input file-input-bordered w-full pl-10"
+                disabled={busy}
+              />
+            </div>
 
             {/* Submit */}
             <button className="btn btn-primary w-full mt-2" disabled={busy}>

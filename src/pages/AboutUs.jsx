@@ -105,7 +105,7 @@ const AboutUs = () => {
   return (
     <div className="bg-base-100 min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
+      <section className="relative lg:h-[80vh] h-[90vh] flex items-center justify-center overflow-hidden">
         {/* Background Overlay */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-fixed"

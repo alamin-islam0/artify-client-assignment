@@ -88,7 +88,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[calc(100dvh-120px)] grid place-items-center px-4 py-8 bg-base-200">
+    <div className="min-h-[calc(100dvh-120px)] pt-32 grid place-items-center px-4 py-16 bg-base-200">
       {/* Card */}
       <div
         className="

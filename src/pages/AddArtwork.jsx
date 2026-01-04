@@ -16,6 +16,7 @@ import {
   Layers,
   CheckCircle,
 } from "lucide-react";
+import { uploadImageCurrent } from "../utils/imageUpload";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -36,13 +37,22 @@ export default function AddArtwork() {
   });
 
   const [busy, setBusy] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   // VALIDATION
   const validate = () => {
-    if (!form.image) return "Image URL is required";
+    // If no image URL and no selected file, error
+    if (!form.image && !selectedImage) return "Image is required";
     if (!form.title) return "Title is required";
     if (!user?.email) return "You must be logged in to add artwork";
     return null;
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+    }
   };
 
   const onSubmit = async (e) => {
@@ -52,24 +62,31 @@ export default function AddArtwork() {
 
     setBusy(true);
 
-    // Payload to server
-    const payload = {
-      image: form.image,
-      title: form.title,
-      category: form.category,
-      medium: form.medium,
-      description: form.description,
-      dimensions: form.dimensions,
-      price: form.price === "" ? "" : Number(form.price),
-      visibility: form.visibility === "public" ? "Public" : "Private",
-      featured: !!form.featured,
-      // Firebase Auth user
-      userName: user.displayName || "Unknown",
-      userEmail: user.email,
-      artistPhoto: user.photoURL || "",
-    };
-
     try {
+      let imageUrl = form.image;
+      if (selectedImage) {
+        const uploaded = await uploadImageCurrent(selectedImage);
+        if (!uploaded) throw new Error("Image upload failed");
+        imageUrl = uploaded;
+      }
+
+      // Payload to server
+      const payload = {
+        image: imageUrl,
+        title: form.title,
+        category: form.category,
+        medium: form.medium,
+        description: form.description,
+        dimensions: form.dimensions,
+        price: form.price === "" ? "" : Number(form.price),
+        visibility: form.visibility === "public" ? "Public" : "Private",
+        featured: !!form.featured,
+        // Firebase Auth user
+        userName: user.displayName || "Unknown",
+        userEmail: user.email,
+        artistPhoto: user.photoURL || "",
+      };
+
       const res = await fetch(`${API_BASE.replace(/\/$/, "")}/arts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,6 +117,7 @@ export default function AddArtwork() {
         visibility: "public",
         featured: false,
       });
+      setSelectedImage(null);
 
       navigate("/explore");
     } catch (err) {
@@ -200,13 +218,19 @@ export default function AddArtwork() {
                 <div className="form-control w-full">
                   <label className="label font-semibold text-base-content/80">
                     <span className="flex items-center gap-2">
-                      <ImageIcon size={16} /> Image URL
+                      <ImageIcon size={16} /> Artwork Image
                     </span>
                   </label>
                   <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="file-input file-input-bordered file-input-primary w-full mb-2"
+                  />
+                  <input
                     type="url"
-                    className="input input-bordered w-full focus:input-primary transition-all"
-                    placeholder="https://..."
+                    className="input input-bordered input-sm w-full focus:input-primary transition-all"
+                    placeholder="Or paste image URL"
                     value={form.image}
                     onChange={(e) =>
                       setForm({ ...form, image: e.target.value })

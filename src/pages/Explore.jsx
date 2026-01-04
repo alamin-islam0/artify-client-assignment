@@ -1,6 +1,8 @@
 // src/pages/Explore.jsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import useAxiosPublic from "../hooks/useAxiosPublic";
 
 /* Avatar helper copied from FeaturedArtworks.jsx */
 function Avatar({ name = "Artist", photoURL }) {
@@ -33,7 +35,9 @@ function ArtworkCard({ a, loading }) {
     <div className="group relative overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm hover:shadow-xl transition-all duration-300">
       {/* Image */}
       <div className="relative">
-        {loading && <div className="absolute inset-0 animate-pulse bg-base-200" />}
+        {loading && (
+          <div className="absolute inset-0 animate-pulse bg-base-200" />
+        )}
 
         <img
           src={a?.image}
@@ -130,61 +134,47 @@ function ArtworkCard({ a, loading }) {
   );
 }
 
-async function getExplore({ search = "", category = "", page = 1, limit = 12 } = {}) {
-  try {
-    const url = new URL("https://artify-server-assignment.onrender.com/arts");
-    url.searchParams.set("page", page);
-    url.searchParams.set("limit", limit);
-    if (search) url.searchParams.set("search", search);
-    if (category) url.searchParams.set("category", category);
-
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      headers: {
-        "Accept": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      // you can throw to be handled by caller; here we return empty array for resilience
-      console.error("getExplore failed:", res.status, res.statusText);
-      return { data: [], total: 0, page: Number(page), limit: Number(limit) };
-    }
-
-    const json = await res.json();
-
-    // backend returns { total, page, limit, data }
-    // adapt if your backend returns plain array
-    if (Array.isArray(json)) {
-      return { data: json, total: json.length, page: Number(page), limit: Number(limit) };
-    }
-
-    return { data: json.data || json, total: json.total || 0, page: json.page || Number(page), limit: json.limit || Number(limit) };
-  } catch (err) {
-    console.error("getExplore error:", err);
-    return { data: [], total: 0, page: Number(page), limit: Number(limit) };
-  }
-}
-
 export default function Explore() {
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState("");
-  const [list, setList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const axiosPublic = useAxiosPublic();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({ search: "", category: "" });
 
-  const load = async () => {
-    setLoading(true);
-    const r = await getExplore({ search: q, category: cat });
-    setList(r.data || []);
-    setLoading(false);
+  const {
+    data: list = [],
+    isLoading,
+    isPlaceholderData,
+  } = useQuery({
+    queryKey: ["explore-arts", filters.search, filters.category],
+    queryFn: async () => {
+      const params = {
+        page: 1,
+        limit: 12,
+        search: filters.search,
+        category: filters.category,
+      };
+      const res = await axiosPublic.get("/arts", { params });
+      // Adapt response structure if needed, keeping similar resilience
+      const data = res.data;
+      if (Array.isArray(data)) return data;
+      return data.data || data || [];
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+
+  const handleSearch = () => {
+    setFilters((prev) => ({ ...prev, search: searchTerm }));
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+  const handleCategoryChange = (e) => {
+    const newCat = e.target.value;
+    setFilters((prev) => ({ ...prev, category: newCat }));
+  };
+
+  const loadingState = isLoading;
 
   return (
-    <section className="max-w-6xl mx-auto px-4 py-10">
+    <section className="max-w-6xl mx-auto px-4 py-10 lg:mt-24 mt-16">
       {/* HEADER */}
       <header className="mb-6">
         <h2 className="text-3xl font-extrabold inter-font">Explore Artworks</h2>
@@ -193,42 +183,50 @@ export default function Explore() {
         </p>
       </header>
 
-      {/* SEARCH AREA (unchanged logic, updated styling) */}
+      {/* SEARCH AREA */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search title or artist"
           className="input input-bordered w-full montserrat-font"
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
         />
 
         <select
-          value={cat}
-          onChange={(e) => setCat(e.target.value)}
+          value={filters.category}
+          onChange={handleCategoryChange}
           className="select select-bordered montserrat-font w-full sm:w-48"
         >
-          <option value="">All</option>
+          <option value="">All Categories</option>
           <option>Painting</option>
           <option>Digital</option>
           <option>Sculpture</option>
+          <option>Photography</option>
+          <option>Sketch</option>
         </select>
 
-        <button onClick={load} className="btn btn-primary montserrat-font w-full sm:w-auto">
+        <button
+          onClick={handleSearch}
+          className="btn btn-primary montserrat-font w-full sm:w-auto"
+        >
           Search
         </button>
       </div>
 
-      {/* GRID (exact same design as FeaturedArtworks) */}
+      {/* GRID */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {(loading ? Array.from({ length: 6 }) : list).map((a, idx) => (
-          <ArtworkCard key={a?._id ?? idx} a={a} loading={loading} />
+        {(loadingState ? Array.from({ length: 6 }) : list).map((a, idx) => (
+          <ArtworkCard key={a?._id ?? idx} a={a} loading={loadingState} />
         ))}
       </div>
 
       {/* EMPTY STATE */}
-      {!loading && list.length === 0 && (
+      {!loadingState && list.length === 0 && (
         <div className="mt-10 text-center border border-dashed border-base-300 p-10 rounded-xl">
-          <h3 className="text-lg font-semibold inter-font">No artworks found</h3>
+          <h3 className="text-lg font-semibold inter-font">
+            No artworks found
+          </h3>
           <p className="opacity-70 montserrat-font">
             Try another search or category.
           </p>

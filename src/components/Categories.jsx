@@ -40,12 +40,12 @@ const Categories = () => {
   ];
 
   return (
-    <section className="lg:pt-24 pt-16 md:pt-16 px-4 md:px-6  bg-base-200/50">
+    <section className="lg:py-24 bg-base-200 py-16 px-4 md:px-6  bg-base-200/50">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16 space-y-4">
-          <h2 className="text-3xl text-[#111827] md:text-5xl font-bold font-montserrat text-white">
+          <h2 className="text-3xl text-base-content md:text-5xl font-bold font-montserrat">
             Browse by{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#111827]">
+            <span className="text-primary ">
               Category
             </span>
           </h2>

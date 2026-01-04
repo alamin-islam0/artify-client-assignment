@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useAuth } from "../providers/AuthProvider";
+import { uploadImageCurrent } from "../utils/imageUpload";
 
 const API_BASE = (
   import.meta.env.VITE_API_URL || "http://localhost:3000"
@@ -39,6 +40,7 @@ export default function Gallery() {
     price: "",
     visibility: "Public",
   });
+  const [editImageFile, setEditImageFile] = useState(null);
   const [editBusy, setEditBusy] = useState(false);
 
   const fetchMyArts = async (email, signal) => {
@@ -177,6 +179,7 @@ export default function Gallery() {
   const closeEdit = () => {
     setEditing(false);
     setEditId(null);
+    setEditImageFile(null);
     setEditForm({
       image: "",
       title: "",
@@ -204,7 +207,7 @@ export default function Gallery() {
     e.preventDefault();
     if (!editId) return;
 
-    if (!editForm.title || !editForm.image) {
+    if (!editForm.title || (!editForm.image && !editImageFile)) {
       return Swal.fire({
         icon: "error",
         title: "Missing",
@@ -213,25 +216,33 @@ export default function Gallery() {
     }
 
     setEditBusy(true);
-    const patch = {
-      title: editForm.title,
-      image: editForm.image,
-      category: editForm.category,
-      medium: editForm.medium,
-      description: editForm.description,
-      dimensions: editForm.dimensions,
-      price: editForm.price === "" ? "" : Number(editForm.price),
-      visibility:
-        String(editForm.visibility).toLowerCase() === "private"
-          ? "Private"
-          : "Public",
-      updatedAt: new Date(),
-    };
-
-    const previous = list;
-    setList((s) => s.map((a) => (a._id === editId ? { ...a, ...patch } : a)));
 
     try {
+      let finalImage = editForm.image;
+      if (editImageFile) {
+        const uploaded = await uploadImageCurrent(editImageFile);
+        if (!uploaded) throw new Error("Image upload failed");
+        finalImage = uploaded;
+      }
+
+      const patch = {
+        title: editForm.title,
+        image: finalImage,
+        category: editForm.category,
+        medium: editForm.medium,
+        description: editForm.description,
+        dimensions: editForm.dimensions,
+        price: editForm.price === "" ? "" : Number(editForm.price),
+        visibility:
+          String(editForm.visibility).toLowerCase() === "private"
+            ? "Private"
+            : "Public",
+        updatedAt: new Date(),
+      };
+
+      const previous = list;
+      setList((s) => s.map((a) => (a._id === editId ? { ...a, ...patch } : a)));
+
       const url = `${API_BASE}/arts/${encodeURIComponent(editId)}`;
       const res = await fetch(url, {
         method: "PATCH",
@@ -253,7 +264,7 @@ export default function Gallery() {
       closeEdit();
     } catch (err) {
       console.error("Update failed", err);
-      setList(previous);
+      //   setList(previous);
       Swal.fire({
         icon: "error",
         title: "Failed to update",
@@ -418,31 +429,33 @@ export default function Gallery() {
                     <td className="text-right montserrat-font">
                       {a.price ? `$${Number(a.price).toLocaleString()}` : "—"}
                     </td>
-                    <td className="text-right flex justify-end gap-2">
-                      <button
-                        onClick={() => openEdit(a)}
-                        className="btn btn-sm btn-outline"
-                      >
-                        Edit
-                      </button>
+                    <td className="text-right">
+                      <div className="flex items-center justify-end gap-2 h-full">
+                        <button
+                          onClick={() => openEdit(a)}
+                          className="btn btn-sm btn-outline"
+                        >
+                          Edit
+                        </button>
 
-                      <button
-                        onClick={() => handleDelete(a._id)}
-                        className={`btn btn-outline btn-sm montserrat-font ${
-                          busyId === a._id
-                            ? "pointer-events-none opacity-60"
-                            : ""
-                        }`}
-                      >
-                        {busyId === a._id ? (
-                          <>
-                            <span className="loading loading-spinner loading-xs" />{" "}
-                            Deleting…
-                          </>
-                        ) : (
-                          "Delete"
-                        )}
-                      </button>
+                        <button
+                          onClick={() => handleDelete(a._id)}
+                          className={`btn btn-outline btn-sm montserrat-font ${
+                            busyId === a._id
+                              ? "pointer-events-none opacity-60"
+                              : ""
+                          }`}
+                        >
+                          {busyId === a._id ? (
+                            <>
+                              <span className="loading loading-spinner loading-xs" />{" "}
+                              Deleting…
+                            </>
+                          ) : (
+                            "Delete"
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -474,13 +487,12 @@ export default function Gallery() {
 
             <form onSubmit={submitEdit} className="grid gap-4">
               <div>
-                <label className="font-semibold text-sm">Image URL</label>
+                <label className="font-semibold text-sm">Image</label>
                 <input
-                  className="input input-bordered w-full"
-                  value={editForm.image}
-                  onChange={(e) =>
-                    setEditForm((s) => ({ ...s, image: e.target.value }))
-                  }
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setEditImageFile(e.target.files[0])}
+                  className="file-input file-input-bordered file-input-sm w-full mb-2"
                 />
               </div>
 
