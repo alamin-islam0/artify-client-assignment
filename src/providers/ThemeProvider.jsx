@@ -18,12 +18,7 @@ export const ThemeProvider = ({ children }) => {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored === "light" || stored === "dark") return stored;
     } catch (e) {}
-    // no stored value -> infer from system
-    if (typeof window !== "undefined" && window.matchMedia) {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    }
+    // Default to light, ignore system preference
     return "light";
   });
 
@@ -65,26 +60,8 @@ export const ThemeProvider = ({ children }) => {
   }, []);
 
   // Sync with system preference if no manual override
-  useEffect(() => {
-    let mq;
-    try {
-      mq = window.matchMedia("(prefers-color-scheme: dark)");
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored && mq) {
-        const handler = (e) => {
-          setTheme(e.matches ? "dark" : "light");
-        };
-        mq.addEventListener
-          ? mq.addEventListener("change", handler)
-          : mq.addListener(handler);
-        return () => {
-          mq.removeEventListener
-            ? mq.removeEventListener("change", handler)
-            : mq.removeListener(handler);
-        };
-      }
-    } catch (e) {}
-  }, []);
+  // Removed system preference sync to enforce default light theme
+  // unless user manually toggles it.
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
