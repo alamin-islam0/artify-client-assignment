@@ -83,7 +83,24 @@ function ArtworkCard({ a, loading }) {
             {loading ? (
               <span className="h-8 w-8 animate-pulse rounded-full bg-base-200" />
             ) : (
-              <Avatar name={a?.artist?.name} photoURL={a?.artist?.photoURL} />
+              <Avatar
+                name={
+                  a?.artist?.name ||
+                  a?.userName ||
+                  a?.artistName ||
+                  a?.user ||
+                  a?.user_name ||
+                  "Unknown Artist"
+                }
+                photoURL={
+                  a?.artist?.photoURL ||
+                  a?.artistPhoto ||
+                  a?.artistPhotoUrl ||
+                  a?.photoURL ||
+                  a?.userPhoto ||
+                  ""
+                }
+              />
             )}
 
             <div className="leading-tight">
@@ -91,7 +108,12 @@ function ArtworkCard({ a, loading }) {
                 {loading ? (
                   <span className="inline-block h-4 w-28 animate-pulse rounded bg-base-200" />
                 ) : (
-                  a?.artist?.name || "Unknown Artist"
+                  a?.artist?.name ||
+                  a?.userName ||
+                  a?.artistName ||
+                  a?.user ||
+                  a?.user_name ||
+                  "Unknown Artist"
                 )}
               </p>
               <p className="text-xs opacity-60 montserrat-font">
@@ -137,7 +159,7 @@ function ArtworkCard({ a, loading }) {
 export default function Explore() {
   const axiosPublic = useAxiosPublic();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({ search: "", category: "" });
+  const [filters, setFilters] = useState({ search: "", category: "", sort: "" });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
@@ -151,13 +173,14 @@ export default function Explore() {
   }, [searchTerm]);
 
   const { data, isLoading, isPlaceholderData } = useQuery({
-    queryKey: ["explore-arts", filters.search, filters.category, currentPage],
+    queryKey: ["explore-arts", filters.search, filters.category, filters.sort, currentPage],
     queryFn: async () => {
       const params = {
         page: currentPage,
         limit: itemsPerPage,
         search: filters.search,
         category: filters.category,
+        sort: filters.sort,
       };
       const res = await axiosPublic.get("/arts", { params });
       return res.data;
@@ -170,18 +193,29 @@ export default function Explore() {
   let list = [];
   let totalCount = 0;
 
+
   if (data) {
     if (Array.isArray(data)) {
       list = data;
-      // If the API returns just an array, we try to use its length,
-      // but proper pagination requires a total count field from the backend.
-      // We will fallback to list.length if no total is provided,
-      // which effectively disables pagination if the backend doesn't support it well.
       totalCount = data.length;
     } else {
       list = data.data || [];
       totalCount = data.total || data.count || data.totalDocs || 0;
     }
+  }
+
+  // Client-side sort fallback ensuring the displayed list respects the preference
+  if (filters.sort) {
+    list.sort((a, b) => {
+      if (filters.sort === "newest") {
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      } else if (filters.sort === "oldest") {
+        return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+      } else if (filters.sort === "most_liked") {
+        return (b.likes || 0) - (a.likes || 0);
+      }
+      return 0;
+    });
   }
 
   const totalPages = Math.ceil(totalCount / itemsPerPage) || 1;
@@ -228,6 +262,12 @@ export default function Explore() {
     return pages;
   };
 
+  const handleSortChange = (e) => {
+    const newSort = e.target.value;
+    setFilters((prev) => ({ ...prev, sort: newSort }));
+    setCurrentPage(1);
+  };
+
   return (
     <section className="max-w-6xl mx-auto px-4 py-10 lg:mt-24 mt-16">
       {/* HEADER */}
@@ -258,6 +298,17 @@ export default function Explore() {
           <option>Sculpture</option>
           <option>Photography</option>
           <option>Sketch</option>
+        </select>
+
+        <select
+          value={filters.sort}
+          onChange={handleSortChange}
+          className="select select-bordered montserrat-font w-full sm:w-48"
+        >
+          <option value="">Sort By</option>
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="most_liked">Most Liked</option>
         </select>
       </div>
 

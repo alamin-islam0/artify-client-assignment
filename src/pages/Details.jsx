@@ -192,7 +192,7 @@ export default function Details() {
   const priceIsNumber = typeof art.price === "number" && !Number.isNaN(art.price);
 
   return (
-    <section className="max-w-6xl mx-auto px-4 py-8">
+    <section className="max-w-6xl mx-auto px-4 pt-36 pb-8">
       <div
         className="
           grid lg:grid-cols-2 gap-6

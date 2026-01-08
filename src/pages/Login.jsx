@@ -2,8 +2,32 @@ import { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import Swal from "sweetalert2";
-import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, Copy, Check } from "lucide-react";
 import axios from "axios";
+
+const CopyBtn = ({ text }) => {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="text"
+      className="btn-ghost btn-xs btn-square opacity-70 hover:opacity-100"
+      onClick={() => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+      title="Copy to clipboard"
+    >
+      {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+    </button>
+  );
+};
+
+
+const DEMO_CREDS = [
+  { role: "Demo User", email: "user@gmail.com", pass: "Admin@20000" },
+  { role: "Demo Admin", email: "alex@gmail.com", pass: "Admin@2000" },
+];
 
 export default function Login() {
   const { emailLogin, googleLogin } = useAuth();
@@ -107,6 +131,27 @@ export default function Login() {
 
   return (
     <div className="min-h-[calc(100dvh-120px)] pt-32 grid place-items-center px-4 py-16 bg-base-200">
+      {/* Demo Credentials */}
+      <div className="mb-6 w-full max-w-md gap-4 grid grid-cols-2">
+        {DEMO_CREDS.map((cred) => (
+          <div
+            key={cred.role}
+            className="bg-base-100 border border-primary/20 rounded-xl p-4 shadow-sm text-xs"
+          >
+            <div className="font-bold text-primary mb-2 text-center uppercase tracking-wider">
+              {cred.role}
+            </div>
+            <div className="flex items-center justify-between mb-1 bg-base-200 p-2 rounded">
+              <span className="opacity-70 truncate mr-2">{cred.email}</span>
+              <CopyBtn text={cred.email} />
+            </div>
+            <div className="flex items-center justify-between bg-base-200 p-2 rounded">
+              <span className="opacity-70 truncate mr-2">{cred.pass}</span>
+              <CopyBtn text={cred.pass} />
+            </div>
+          </div>
+        ))}
+      </div>
       {/* Card */}
       <div
         className="
