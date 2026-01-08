@@ -7,6 +7,13 @@ import TopArtists from "../components/TopArtists";
 import CommunityHighlights from "../components/CommunityHighlights";
 import Categories from "../components/Categories";
 
+// New Sections
+import Statistics from "../components/home/Statistics";
+import WhyChooseUs from "../components/home/WhyChooseUs";
+import HowItWorks from "../components/home/HowItWorks";
+import Testimonials from "../components/home/Testimonials";
+import CallToAction from "../components/home/CallToAction";
+
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export async function getFeatured(signal) {
@@ -56,11 +63,26 @@ export default function Home() {
   return (
     <div className="">
       <Slider />
+
+      {/* Social Proof Stats - Immediate Impact */}
+      <Statistics />
+
+      {/* Value Proposition */}
+      <WhyChooseUs />
+
       <Categories />
       <AboutSection />
       <FeaturedArtworks items={items} loading={busy} />
+
+      {/* Process - How to engage */}
+      <HowItWorks />
+
       <CommunityHighlights />
       <TopArtists />
+
+      {/* Trust & Conversion */}
+      <Testimonials />
+      <CallToAction />
     </div>
   );
 }
